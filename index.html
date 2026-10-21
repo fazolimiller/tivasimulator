@@ -5,86 +5,94 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>TIVA Simulator</title>
   <meta name="description" content="Simulador de infusão alvo-controlada (TCI) para bombas de infusão que só aceitam ml/h.">
+  <meta name="theme-color" content="#0f2a4a">
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
   <header class="topbar">
     <div class="brand">
-      <span class="logo" aria-hidden="true">◎</span>
+      <svg class="logo" viewBox="0 0 32 32" aria-hidden="true">
+        <rect x="3" y="6" width="26" height="20" rx="5" fill="none" stroke="currentColor" stroke-width="2.2"/>
+        <path d="M7 19 L11 19 L13 13 L16 23 L19 11 L21 19 L25 19" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
       <div>
         <h1>TIVA Simulator</h1>
         <p class="subtitle">TCI manual para bombas em ml/h</p>
       </div>
     </div>
-    <button id="btnAbout" class="ghost" type="button">Sobre / fórmulas</button>
+    <div class="top-actions">
+      <button id="btnShare" class="top-btn" type="button" title="Copiar link com este cenário">Compartilhar</button>
+      <button id="btnTheme" class="top-btn icon" type="button" title="Alternar tema claro/escuro" aria-label="Alternar tema">◐</button>
+      <button id="btnAbout" class="top-btn" type="button">Fórmulas</button>
+    </div>
   </header>
 
-  <div class="disclaimer" role="note">
-    Ferramenta educacional e de apoio à decisão. As concentrações são <strong>previsões populacionais</strong>
-    dos modelos farmacocinéticos; confira doses, diluições e programação da bomba e monitore o paciente clinicamente.
-  </div>
-
   <main>
-    <section class="panel setup">
-      <div class="setup-group">
-        <h2>Paciente</h2>
-        <div class="fields">
-          <label>Idade (anos)<input id="age" type="number" min="0" max="110" step="1" value="40"></label>
-          <label>Peso (kg)<input id="weight" type="number" min="1" max="250" step="0.1" value="70"></label>
-          <label>Altura (cm)<input id="height" type="number" min="40" max="230" step="1" value="170"></label>
-          <label>Sexo
-            <select id="sex"><option value="M">Masculino</option><option value="F">Feminino</option></select>
-          </label>
-          <label class="check"><input id="opioid" type="checkbox" checked> Opioide concomitante (Eleveld)</label>
+    <details class="panel setup" id="setupPanel" open>
+      <summary>
+        <span class="setup-title">Paciente e bomba</span>
+        <span id="setupSummary" class="setup-summary"></span>
+      </summary>
+      <div class="setup-body">
+        <div class="setup-group">
+          <h2>Paciente</h2>
+          <div class="fields">
+            <label>Idade<span class="input-unit"><input id="age" type="number" min="0" max="110" step="1" value="40"><em>anos</em></span></label>
+            <label>Peso<span class="input-unit"><input id="weight" type="number" min="1" max="250" step="0.1" value="70"><em>kg</em></span></label>
+            <label>Altura<span class="input-unit"><input id="height" type="number" min="40" max="230" step="1" value="170"><em>cm</em></span></label>
+            <label>Sexo
+              <select id="sex"><option value="M">Masculino</option><option value="F">Feminino</option></select>
+            </label>
+          </div>
+          <label class="check"><input id="opioid" type="checkbox" checked> Opioide concomitante (modelo de Eleveld)</label>
+          <p id="patientInfo" class="muted small"></p>
         </div>
-        <p id="patientInfo" class="muted small"></p>
-      </div>
-      <div class="setup-group">
-        <h2>Bomba e simulação</h2>
-        <div class="fields">
-          <label>Taxa máx. de bolus (ml/h)
-            <input id="maxBolusRate" type="number" min="0" max="2000" step="50" value="1200">
-          </label>
-          <label>Resolução da bomba
-            <select id="rateResolution"><option value="0.1">0,1 ml/h</option><option value="1">1 ml/h</option></select>
-          </label>
-          <label>Intervalo mín. entre ajustes
-            <select id="minStep">
-              <option value="2">2 min</option><option value="4">4 min</option><option value="6">6 min</option>
-              <option value="10">10 min</option><option value="16">16 min</option>
-            </select>
-          </label>
-          <label>Duração simulada
-            <select id="horizon">
-              <option value="2">2 h</option><option value="4" selected>4 h</option><option value="6">6 h</option>
-              <option value="8">8 h</option><option value="12">12 h</option>
-            </select>
-          </label>
+        <div class="setup-group">
+          <h2>Bomba e simulação</h2>
+          <div class="fields">
+            <label>Taxa máx. de bolus<span class="input-unit"><input id="maxBolusRate" type="number" min="0" max="2000" step="50" value="1200"><em>ml/h</em></span></label>
+            <label>Resolução da bomba
+              <select id="rateResolution"><option value="0.1">0,1 ml/h</option><option value="1">1 ml/h</option></select>
+            </label>
+            <label>Intervalo mín. entre ajustes
+              <select id="minStep">
+                <option value="2">2 min</option><option value="4">4 min</option><option value="6">6 min</option>
+                <option value="10">10 min</option><option value="16">16 min</option>
+              </select>
+            </label>
+            <label>Duração simulada
+              <select id="horizon">
+                <option value="2">2 h</option><option value="4" selected>4 h</option><option value="6">6 h</option>
+                <option value="8">8 h</option><option value="12">12 h</option>
+              </select>
+            </label>
+          </div>
+          <p class="muted small">Taxa máx. de bolus = 0 simula bolus instantâneo (seringa ou botão de bolus).</p>
         </div>
-        <p class="muted small">Taxa máx. de bolus = 0 simula bolus instantâneo (seringa/botão de bolus).</p>
       </div>
-    </section>
+    </details>
 
     <section class="timebar" aria-label="Controle de tempo">
-      <div class="clock">
-        <span class="muted small">Tempo</span>
-        <output id="clock">00:00:00</output>
-      </div>
-      <div class="transport">
-        <button type="button" data-jump="reset" title="Início">⏮</button>
-        <button type="button" data-jump="-600" title="Voltar 10 min">−10m</button>
-        <button type="button" data-jump="-60" title="Voltar 1 min">−1m</button>
-        <button type="button" data-jump="-10" title="Voltar 10 s">−10s</button>
-        <button type="button" id="btnPlay" class="primary" title="Reproduzir/pausar">▶</button>
-        <button type="button" data-jump="10" title="Avançar 10 s">+10s</button>
-        <button type="button" data-jump="60" title="Avançar 1 min">+1m</button>
-        <button type="button" data-jump="600" title="Avançar 10 min">+10m</button>
-        <select id="speed" title="Velocidade">
-          <option value="1">1× (tempo real)</option><option value="10">10×</option>
-          <option value="60" selected>60× (1 min/s)</option><option value="300">300× (5 min/s)</option>
-        </select>
+      <div class="timebar-row">
+        <div class="clock">
+          <span class="clock-label">Tempo de infusão</span>
+          <output id="clock">00:00:00</output>
+        </div>
+        <div class="transport">
+          <button type="button" data-jump="reset" title="Voltar ao início" aria-label="Início">⏮</button>
+          <button type="button" data-jump="-600" title="Voltar 10 min">−10m</button>
+          <button type="button" data-jump="-60" title="Voltar 1 min">−1m</button>
+          <button type="button" id="btnPlay" class="play" title="Reproduzir/pausar" aria-label="Reproduzir">▶</button>
+          <button type="button" data-jump="60" title="Avançar 1 min">+1m</button>
+          <button type="button" data-jump="600" title="Avançar 10 min">+10m</button>
+          <select id="speed" title="Velocidade" aria-label="Velocidade">
+            <option value="1">1× real</option><option value="10">10×</option>
+            <option value="60" selected>60×</option><option value="300">300×</option>
+          </select>
+        </div>
       </div>
       <input id="timeSlider" type="range" min="0" max="14400" step="1" value="0" aria-label="Tempo da infusão">
+      <div id="pumpStrip" class="pump-strip" aria-label="Taxas atuais"></div>
     </section>
 
     <section id="infusions" class="infusions"></section>
@@ -95,66 +103,78 @@
     </div>
   </main>
 
+  <div id="toast" class="toast" role="status" hidden></div>
+
   <template id="infusionTpl">
     <article class="infusion">
       <header class="inf-head">
         <span class="swatch"></span>
         <h3 class="inf-title"></h3>
-        <span class="inf-model muted small"></span>
-        <button type="button" class="ghost small btn-remove" title="Remover infusão">✕</button>
+        <span class="badge inf-model"></span>
+        <span class="badge inf-conc"></span>
+        <button type="button" class="icon-btn btn-remove" title="Remover infusão" aria-label="Remover infusão">✕</button>
       </header>
       <div class="inf-body">
         <div class="inf-chart">
           <div class="chart-wrap"><canvas></canvas></div>
-          <p class="muted small chart-hint">Clique no gráfico para ir até aquele tempo. Linha cheia = Cp, tracejada = Ce, pontilhada = alvo, área = taxa (ml/h).</p>
+          <div class="legend">
+            <span><i class="lg-cp"></i>Cp plasma</span>
+            <span><i class="lg-ce"></i>Ce efeito</span>
+            <span><i class="lg-tg"></i>Alvo</span>
+            <span><i class="lg-rate"></i>Taxa ml/h</span>
+            <span class="muted">Clique no gráfico para ir ao tempo</span>
+          </div>
         </div>
         <div class="inf-side">
-          <div class="fields compact">
-            <label>Fármaco<select class="sel-drug"></select></label>
-            <label>Modelo<select class="sel-model"></select></label>
-            <label class="conc-label">Concentração<input class="inp-conc" type="number" min="0.01" step="any"></label>
-          </div>
-          <p class="warn small model-warn" hidden></p>
-
-          <div class="readout">
-            <div class="big">
-              <span class="muted small">Taxa na bomba agora</span>
-              <span class="rate-now">—</span>
-              <span class="rate-kg muted small"></span>
+          <div class="pump-display">
+            <div class="pd-top">
+              <span class="pd-label">Programar na bomba</span>
+              <span class="pd-state"></span>
             </div>
-            <dl class="stats">
-              <div><dt>Cp</dt><dd class="cp-now">—</dd></div>
-              <div><dt>Ce</dt><dd class="ce-now">—</dd></div>
-              <div><dt>Alvo</dt><dd class="target-now">—</dd></div>
-              <div><dt>Volume</dt><dd class="vol-now">—</dd></div>
-            </dl>
-            <p class="next-change small"></p>
+            <div class="pd-rate"><span class="rate-now">—</span></div>
+            <div class="pd-sub rate-kg"></div>
+            <div class="pd-next next-change"></div>
           </div>
+          <dl class="stats">
+            <div><dt>Cp</dt><dd class="cp-now">—</dd></div>
+            <div><dt>Ce</dt><dd class="ce-now">—</dd></div>
+            <div><dt>Alvo</dt><dd class="target-now">—</dd></div>
+            <div><dt>Volume</dt><dd class="vol-now">—</dd></div>
+          </dl>
 
           <form class="action">
-            <span class="small muted action-time"></span>
+            <div class="action-head"><span>Nova ação</span><span class="action-time"></span></div>
+            <div class="seg act-types" role="radiogroup" aria-label="Tipo de ação">
+              <button type="button" data-type="cet" class="on">Alvo Ce</button>
+              <button type="button" data-type="cpt">Alvo Cp</button>
+              <button type="button" data-type="rate">ml/h</button>
+              <button type="button" data-type="bolus">Bolus</button>
+              <button type="button" data-type="stop">Parar</button>
+            </div>
             <div class="action-row">
-              <select class="act-type">
-                <option value="cet">Alvo efeito (Ce)</option>
-                <option value="cpt">Alvo plasma (Cp)</option>
-                <option value="rate">Taxa manual (ml/h)</option>
-                <option value="bolus">Bolus manual</option>
-                <option value="stop">Parar infusão</option>
-              </select>
-              <input class="act-value" type="number" min="0" step="any" aria-label="Valor">
-              <span class="act-unit small muted"></span>
+              <span class="input-unit"><input class="act-value" type="text" inputmode="decimal" autocomplete="off" aria-label="Valor"><em class="act-unit"></em></span>
               <button type="submit" class="primary">Aplicar</button>
             </div>
           </form>
 
           <div class="events"></div>
+
+          <details class="config">
+            <summary>Fármaco, modelo e diluição</summary>
+            <div class="fields compact">
+              <label>Fármaco<select class="sel-drug"></select></label>
+              <label>Modelo<select class="sel-model"></select></label>
+              <label class="conc-label">Concentração<input class="inp-conc" type="number" min="0.01" step="any"></label>
+            </div>
+          </details>
+          <p class="warn small model-warn" hidden></p>
         </div>
       </div>
-      <details class="scheme" open>
-        <summary>Esquema para a bomba</summary>
+      <details class="scheme">
+        <summary>Esquema completo para a bomba <span class="scheme-count muted"></span></summary>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Início</th><th>Ação na bomba</th><th class="num">ml/h</th><th class="num kg-head"></th><th class="num">Vol. acum.</th></tr></thead>
+            <thead><tr><th></th><th>Início</th><th>Ação</th><th class="num">ml/h</th><th class="num kg-head"></th><th class="num">Vol. acum.</th></tr></thead>
             <tbody></tbody>
           </table>
         </div>
@@ -175,14 +195,14 @@ Cp = ΣCp<sub>i</sub> (i=1..3)    Ce = ΣCe<sub>i</sub> (i=1..4, λ<sub>4</sub>=
       <p>Bolus = (alvo − Cp prevista em 1 s) / resposta a 1 s de infusão unitária. Depois, a cada 120 s calcula-se a taxa ideal
         que mantém Cp no alvo. Como a bomba é manual, as taxas ideais são agrupadas em degraus: a taxa só muda quando a
         ideal se afasta mais que a tolerância do fármaco (ex.: 8% propofol), usando média ponderada entre a taxa ideal do início e
-        a do fim do degrau. A cada degrau o cálculo é refeito a partir das concentrações reais previstas (malha fechada).</p>
+        a do fim do degrau. A cada degrau o cálculo é refeito a partir das concentrações previstas (malha fechada).</p>
       <h3>Alvo no efeito (Ce)</h3>
       <p>O bolus é calculado (busca binária) para que o pico de Ce seja igual ao alvo, considerando a taxa máxima de bolus.
         A infusão fica pausada até o pico e então segue a manutenção do alvo. Ao reduzir o alvo, a bomba é pausada até
         a concentração cair e depois retomada.</p>
       <h3>Modelos</h3>
       <ul id="modelRefs"></ul>
-      <p class="muted small">Algoritmos adaptados do STANPUMP (Shafer) e da lógica publicada no SimTIVA (simtiva.app).</p>
+      <p class="muted small">As concentrações são previsões populacionais dos modelos. Algoritmos adaptados do STANPUMP (Shafer) e da lógica publicada no SimTIVA (simtiva.app).</p>
       <div class="dialog-actions"><button class="primary">Fechar</button></div>
     </form>
   </dialog>

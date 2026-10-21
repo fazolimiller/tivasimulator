@@ -19,7 +19,14 @@ taxas em ml/h com horário de cada ajuste. Serve para apoiar a tomada de decisã
 6. **Várias infusões simultâneas**: “+ Adicionar infusão” (ex.: propofol + remifentanil + dexmedetomidina),
    todas compartilham o mesmo paciente e o mesmo relógio.
 
-O estado fica salvo no navegador (localStorage).
+O estado fica salvo no navegador (localStorage). Atalhos: espaço = reproduzir/pausar, ← / → = ±1 min (Shift = ±10 min).
+
+## Uso por várias pessoas
+
+- Publicado no GitHub Pages, qualquer número de pessoas pode abrir o app ao mesmo tempo; cada aparelho tem a sua
+  própria simulação independente (nada é enviado a servidor).
+- **Compartilhar** (botão no topo) copia um link com o cenário inteiro (paciente, bomba, infusões e ações) codificado
+  no próprio endereço. Quem abrir o link vê exatamente o mesmo cenário e pode continuar a partir dele.
 
 ## Fármacos e modelos
 
