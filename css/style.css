@@ -229,8 +229,6 @@ label.check { display: flex; align-items: center; gap: 8px; margin-top: 12px; fo
 .inf-actionbar .action-row { margin: 0; }
 .inf-actionbar .seg, .inf-actionbar input { background: var(--surface); }
 .inf-actionbar .seg button.on { background: var(--drug, var(--primary)); color: #fff; }
-.inf-actionbar .events { margin-top: 10px; }
-.inf-actionbar .chip { background: var(--surface); }
 .action-head { display: flex; justify-content: space-between; gap: 2px 8px; font-size: .8rem; font-weight: 700; color: var(--muted); margin-bottom: 6px; }
 .action-time { font-variant-numeric: tabular-nums; color: var(--text); }
 .seg { display: grid; grid-template-columns: repeat(5, 1fr); background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; padding: 3px; gap: 3px; }
@@ -240,15 +238,34 @@ label.check { display: flex; align-items: center; gap: 8px; margin-top: 12px; fo
 .action-row .input-unit em { max-width: 60px; }
 .action-row input:disabled { opacity: .5; }
 
-.events { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
-.events .empty { font-size: .82rem; color: var(--muted); }
-.chip {
-  display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--border); border-radius: 999px;
-  padding: 2px 4px 2px 10px; font-size: .8rem; background: var(--surface-2);
+/* Linha do tempo (abaixo do gráfico) */
+.timeline { margin-top: 10px; display: flex; align-items: flex-start; gap: 12px; }
+.tl-title { flex: none; font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); padding-top: 3px; }
+.events {
+  list-style: none; margin: 0; padding: 0 0 4px; display: flex; flex: 1; min-width: 0; overflow-x: auto;
 }
-.chip button { min-height: 22px; width: 22px; padding: 0; border-radius: 50%; border: none; background: transparent; color: var(--muted); }
-.chip button:hover { color: #c62828; }
-.chip .chip-time { cursor: pointer; font-variant-numeric: tabular-nums; font-weight: 700; }
+.events .empty { font-size: .82rem; color: var(--muted); }
+.tl-item {
+  position: relative; flex: none; display: grid; grid-template-rows: auto 12px auto; justify-items: start;
+  gap: 3px; padding-right: 18px; font-size: .8rem; min-width: 92px;
+}
+.tl-item::before {
+  content: ""; position: absolute; left: 0; right: 0; top: calc(1.2em + 3px + 5px); border-top: 2px solid var(--border);
+}
+.tl-item:last-child::before { right: auto; width: 12px; }
+.tl-time { cursor: pointer; font-variant-numeric: tabular-nums; font-weight: 700; line-height: 1.2em; }
+.tl-time:hover { color: var(--drug, var(--primary)); }
+.tl-dot {
+  position: relative; width: 12px; height: 12px; border-radius: 50%; background: var(--surface);
+  border: 2px solid var(--drug, var(--primary)); box-sizing: border-box;
+}
+.tl-item.past .tl-dot, .tl-item.now .tl-dot { background: var(--drug, var(--primary)); }
+.tl-item.now .tl-dot { box-shadow: 0 0 0 4px var(--drug-soft, var(--primary-soft)); }
+.tl-item.past { color: var(--muted); }
+.tl-act { display: inline-flex; align-items: center; gap: 2px; white-space: nowrap; }
+.tl-item.now .tl-act { font-weight: 700; }
+.tl-act button { min-height: 20px; width: 20px; padding: 0; border-radius: 50%; border: none; background: transparent; color: var(--muted); font-size: .7rem; }
+.tl-act button:hover { color: #c62828; }
 
 .config { margin-top: 12px; border: 1px solid var(--border); border-radius: 10px; }
 .config summary { padding: 8px 12px; cursor: pointer; font-size: .85rem; font-weight: 600; color: var(--muted); }
@@ -323,4 +340,6 @@ dialog::backdrop { background: rgba(5, 15, 30, .55); }
   .pump-chip { font-size: .76rem; padding: 3px 8px 3px 6px; }
   .seg button { font-size: .75rem; }
   .rate-now { font-size: 2rem; }
+  .timeline { flex-direction: column; gap: 6px; }
+  .events { width: 100%; }
 }

@@ -1,6 +1,6 @@
 /* Service worker: guarda o app no aparelho para funcionar sem internet.
    Ao publicar uma nova versão, altere CACHE aqui e o ?v= dos arquivos em index.html. */
-const CACHE = 'tcisim-v10';
+const CACHE = 'tcisim-v11';
 const FILES = [
   './', 'index.html', 'css/style.css', 'js/pk.js', 'js/tci.js', 'js/app.js',
   'vendor/chart.umd.min.js', 'manifest.webmanifest',
