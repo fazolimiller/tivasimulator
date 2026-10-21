@@ -796,7 +796,7 @@
   // Um áudio silencioso em repetição mantém o app ativo em segundo plano.
   // ---------------------------------------------------------------------------
   const hasMediaSession = 'mediaSession' in navigator;
-  let statusAudio = null, statusLast = 0;
+  let statusAudio = null;
   function silentWav(seconds) {
     const rate = 8000, n = rate * seconds, buf = new ArrayBuffer(44 + n), v = new DataView(buf);
     const str = (o, x) => { for (let i = 0; i < x.length; i++) v.setUint8(o + i, x.charCodeAt(i)); };
@@ -820,27 +820,42 @@
       if (statusAudio) statusAudio.pause();
       navigator.mediaSession.playbackState = statusAudio ? 'paused' : 'none';
     }
-    statusLast = 0;
+    statusPos = null;
     updateStatus();
   }
+  // Para não piscar: o aviso só é redesenhado quando o texto muda (taxa ou próximo ajuste,
+  // que mostra o horário e não uma contagem), a imagem é definida uma única vez e o tempo
+  // de infusão vem da barra de progresso, que o próprio sistema faz andar.
+  let statusText = '', statusPos = null;
   function updateStatus() {
     if (!hasMediaSession || !statusAudio || !state.infusions.length) return;
-    const nowMs = performance.now();
-    if (state.playing && nowMs - statusLast < 1000) return;
-    statusLast = nowMs;
     const parts = state.infusions.filter((inf) => inf.result).map((inf) => ({ inf, ...pumpNow(inf) }));
     const title = parts.map((x) => `${PK.DRUGS[x.inf.drugKey].name} ${x.now}`).join(' · ');
     const soon = parts.filter((x) => x.next).sort((a, b) => a.soonS - b.soonS)[0];
-    const artist = `Infusão ${fmtTime(state.time)}` +
-      (soon ? ` · próximo: ${describeStep(soon.next)} em ${fmtLeft(soon.soonS)}` : '');
+    const artist = soon ? `Próximo: ${describeStep(soon.next)} às ${fmtTime(soon.next.t)}` : 'Sem outros ajustes programados';
     try {
-      navigator.mediaSession.metadata = new MediaMetadata({
-        title, artist, album: 'TCI Sim',
-        artwork: [{ src: 'icons/icon-192.png', sizes: '192x192', type: 'image/png' }, { src: 'icons/icon-512.png', sizes: '512x512', type: 'image/png' }],
-      });
-      // barra de progresso do sistema = tempo de infusão (o próprio sistema a faz andar)
-      if (navigator.mediaSession.setPositionState) {
-        navigator.mediaSession.setPositionState({ duration: horizon(), position: Math.min(state.time, horizon()), playbackRate: state.playing ? state.speed : 1 });
+      const ms = navigator.mediaSession;
+      if (title + artist !== statusText) {
+        statusText = title + artist;
+        if (!ms.metadata) {
+          ms.metadata = new MediaMetadata({
+            title, artist, album: 'TCI Sim',
+            artwork: [{ src: 'icons/icon-192.png', sizes: '192x192', type: 'image/png' }, { src: 'icons/icon-512.png', sizes: '512x512', type: 'image/png' }],
+          });
+        } else {
+          ms.metadata.title = title;
+          ms.metadata.artist = artist;
+        }
+      }
+      // barra de progresso = tempo de infusão; só reposiciona em pausa, salto ou mudança de velocidade
+      if (ms.setPositionState) {
+        const rate = state.playing ? state.speed : 0;
+        const nowMs = performance.now();
+        const expected = statusPos ? statusPos.pos + ((nowMs - statusPos.at) / 1000) * statusPos.rate : NaN;
+        if (!statusPos || statusPos.rate !== rate || Math.abs(expected - state.time) > 2) {
+          ms.setPositionState({ duration: horizon(), position: Math.min(state.time, horizon()), playbackRate: rate || 1 });
+          statusPos = { pos: state.time, at: nowMs, rate };
+        }
       }
     } catch (e) { /* sem suporte */ }
   }
@@ -875,7 +890,7 @@
     setTime(j === 'reset' ? 0 : state.time + Number(j));
   }));
   slider.addEventListener('input', () => setTime(+slider.value, true));
-  $('#speed').addEventListener('change', (e) => { state.speed = +e.target.value; statusLast = 0; updateStatus(); });
+  $('#speed').addEventListener('change', (e) => { state.speed = +e.target.value; updateStatus(); });
   document.addEventListener('keydown', (e) => {
     if (e.target.closest('input, select, textarea') || e.ctrlKey || e.metaKey || e.altKey) return;
     if (e.key === ' ') { e.preventDefault(); setPlaying(!state.playing); }
