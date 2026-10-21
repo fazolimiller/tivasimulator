@@ -1,6 +1,6 @@
 /* Service worker: guarda o app no aparelho para funcionar sem internet.
-   Ao publicar uma nova versão, altere CACHE para forçar a atualização. */
-const CACHE = 'tcisim-v7';
+   Ao publicar uma nova versão, altere CACHE aqui e o ?v= dos arquivos em index.html. */
+const CACHE = 'tcisim-v9';
 const FILES = [
   './', 'index.html', 'css/style.css', 'js/pk.js', 'js/tci.js', 'js/app.js',
   'vendor/chart.umd.min.js', 'manifest.webmanifest',
@@ -24,7 +24,8 @@ self.addEventListener('activate', (e) => {
 self.addEventListener('fetch', (e) => {
   if (e.request.method !== 'GET' || new URL(e.request.url).origin !== location.origin) return;
   e.respondWith(
-    fetch(e.request)
+    // no-cache: sempre confere com o servidor, evitando misturar arquivos de versões diferentes
+    fetch(e.request, { cache: 'no-cache' })
       .then((res) => {
         if (res.ok) {
           const copy = res.clone();

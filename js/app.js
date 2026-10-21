@@ -761,7 +761,20 @@
   if (fromLink) { save(); toast('Cenário carregado do link compartilhado.'); }
 
   // Aplicativo instalável (PWA): funciona offline depois do primeiro acesso
+  // Atualização automática: procura nova versão ao abrir/voltar ao app e recarrega quando ela assume
   if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
-    navigator.serviceWorker.register('sw.js').catch(() => { /* sem suporte */ });
+    const hadController = !!navigator.serviceWorker.controller;
+    let reloading = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (!hadController || reloading) return;
+      reloading = true;
+      save();
+      location.reload();
+    });
+    navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then((reg) => {
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') reg.update().catch(() => {});
+      });
+    }).catch(() => { /* sem suporte */ });
   }
 })();
