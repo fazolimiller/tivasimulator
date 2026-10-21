@@ -113,8 +113,8 @@ main { max-width: 1440px; margin: 0 auto; padding: 18px 20px 40px; display: flex
 .setup[open] > summary::before { transform: rotate(90deg); }
 .setup-title { font-weight: 700; }
 .setup-summary { color: var(--muted); font-size: .88rem; }
-.setup-body { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; padding: 4px 18px 18px; border-top: 1px solid var(--border); padding-top: 16px; }
-.fields { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px 12px; }
+.setup-body { display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px; padding: 4px 18px 18px; border-top: 1px solid var(--border); padding-top: 16px; }
+.fields { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 220px)); gap: 10px 12px; }
 .fields label { display: flex; flex-direction: column; gap: 4px; font-size: .8rem; color: var(--muted); font-weight: 500; }
 label.check { display: flex; align-items: center; gap: 8px; margin-top: 12px; font-size: .88rem; }
 .fields.compact { grid-template-columns: repeat(3, minmax(0, 1fr)); }

@@ -40,7 +40,8 @@
   let nextId = 1;
   const state = {
     patient: { age: 40, weight: 70, height: 170, sex: 'M', opioid: true },
-    settings: { maxBolusRate: 1200, rateResolution: 0.1, minStepMinutes: 2, horizonH: 4 },
+    // Valores fixos (bolus manual instantâneo, ajuste a cada 2 min no mínimo); duração automática
+    settings: { maxBolusRate: 0, rateResolution: 0.1, minStepMinutes: 2, horizonH: 4 },
     infusions: [],
     time: 0,
     playing: false,
@@ -54,14 +55,13 @@
 
   function snapshot() {
     return {
-      patient: state.patient, settings: state.settings, time: Math.round(state.time), speed: state.speed,
+      patient: state.patient, time: Math.round(state.time), speed: state.speed,
       infusions: state.infusions.map(({ id, drugKey, modelName, concentration, events }) => ({ id, drugKey, modelName, concentration, events })),
     };
   }
 
   function applySnapshot(d) {
     Object.assign(state.patient, d.patient || {});
-    Object.assign(state.settings, d.settings || {});
     state.time = d.time || 0;
     state.speed = d.speed || 60;
     state.infusions = (d.infusions || [])
@@ -112,6 +112,19 @@
   }
 
   const horizon = () => state.settings.horizonH * 3600;
+
+  // Duração simulada: pelo menos 4 h e 2 h além da última ação (máx. 12 h)
+  function syncHorizon() {
+    const last = Math.max(0, ...state.infusions.flatMap((i) => i.events.map((e) => e.t)));
+    const h = Math.min(12, Math.max(4, Math.ceil((last + 2 * 3600) / 3600)));
+    if (h === state.settings.horizonH) return false;
+    state.settings.horizonH = h;
+    $('#timeSlider').max = horizon();
+    return true;
+  }
+  function refreshAfterEdit(inf) {
+    if (syncHorizon()) { refreshAll(true); setTime(state.time); } else refreshCard(inf, true);
+  }
 
   // ---------------------------------------------------------------------------
   // Simulação
@@ -338,7 +351,7 @@
       inf.events = inf.events.filter((ev) => !(ev.t === t && (ev.type === 'bolus') === (type === 'bolus')));
       inf.events.push({ t, type, value });
       inf.events.sort((a, b) => a.t - b.t);
-      refreshCard(inf, true);
+      refreshAfterEdit(inf);
       toast(`${PK.DRUGS[inf.drugKey].name}: ação aplicada em ${fmtTime(t)}`);
     });
 
@@ -350,7 +363,7 @@
       const del = e.target.closest('[data-del]');
       if (del) {
         inf.events.splice(+del.dataset.del, 1);
-        refreshCard(inf, true);
+        refreshAfterEdit(inf);
         return;
       }
       const go = e.target.closest('[data-go]');
@@ -592,36 +605,17 @@
     refreshAll(true);
   }
   function setupSummary() {
-    const p = state.patient, s = state.settings;
+    const p = state.patient;
     const bmi = p.weight / Math.pow(p.height / 100, 2);
     $('#patientInfo').textContent = `IMC ${nf(bmi, 1)} kg/m² · massa magra (James) ${nf(PK.leanBodyMass(p), 1)} kg · massa livre de gordura ${nf(PK.fatFreeMass(p), 1)} kg`;
-    $('#setupSummary').textContent = `${nf(p.age, 0)} anos · ${nf(p.weight, p.weight % 1 ? 1 : 0)} kg · ${nf(p.height, 0)} cm · ${p.sex === 'M' ? 'masc.' : 'fem.'}` +
-      ` — bolus ${s.maxBolusRate > 0 ? 'até ' + nf(s.maxBolusRate, 0) + ' ml/h' : 'instantâneo'} · ${s.horizonH} h`;
+    $('#setupSummary').textContent = `${nf(p.age, 0)} anos · ${nf(p.weight, p.weight % 1 ? 1 : 0)} kg · ${nf(p.height, 0)} cm · ${p.sex === 'M' ? 'masc.' : 'fem.'}`;
   }
   for (const f of [...pFields, 'sex', 'opioid']) $('#' + f).addEventListener('change', readPatient);
-
-  function readSettings() {
-    const mb = parseFloat($('#maxBolusRate').value);
-    state.settings.maxBolusRate = mb >= 0 ? mb : 0;
-    state.settings.rateResolution = parseFloat($('#rateResolution').value);
-    state.settings.minStepMinutes = parseFloat($('#minStep').value);
-    state.settings.horizonH = parseFloat($('#horizon').value);
-    slider.max = horizon();
-    if (state.time > horizon()) state.time = horizon();
-    setupSummary();
-    refreshAll(true);
-    setTime(state.time);
-  }
-  for (const f of ['maxBolusRate', 'rateResolution', 'minStep', 'horizon']) $('#' + f).addEventListener('change', readSettings);
 
   function writeForm() {
     for (const f of pFields) $('#' + f).value = state.patient[f];
     $('#sex').value = state.patient.sex;
     $('#opioid').checked = state.patient.opioid !== false;
-    $('#maxBolusRate').value = state.settings.maxBolusRate;
-    $('#rateResolution').value = String(state.settings.rateResolution);
-    $('#minStep').value = String(state.settings.minStepMinutes);
-    $('#horizon').value = String(state.settings.horizonH);
     $('#speed').value = String(state.speed);
     slider.max = horizon();
     setupSummary();
@@ -643,6 +637,7 @@
     if (!confirm('Apagar todas as infusões e ações?')) return;
     clearCards();
     state.infusions = [newInfusion('propofol')];
+    syncHorizon();
     createCard(state.infusions[0]);
     renderPumpStrip();
     setTime(0);
@@ -696,6 +691,7 @@
   if (!fromLink && (!load() || !state.infusions.length)) {
     state.infusions = [newInfusion('propofol'), newInfusion('remifentanil')];
   }
+  syncHorizon();
   writeForm();
   if (window.innerWidth < 960 || state.infusions.some((i) => i.events.length)) $('#setupPanel').open = false;
   for (const inf of state.infusions) createCard(inf);

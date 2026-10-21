@@ -10,7 +10,7 @@ taxas em ml/h com horário de cada ajuste. Serve para apoiar a tomada de decisã
 ## Como usar
 
 1. Abra `index.html` no navegador (ou publique a pasta no GitHub Pages). Não precisa de servidor nem internet.
-2. Preencha os dados do paciente e da bomba (taxa máxima de bolus, resolução, intervalo mínimo entre ajustes).
+2. Preencha os dados do paciente. O bolus é considerado manual (instantâneo), as taxas são arredondadas a 0,1 ml/h, os ajustes ocorrem no mínimo a cada 2 min e a duração simulada se estende automaticamente (≥ 4 h e 2 h além da última ação, até 12 h).
 3. Em cada infusão escolha fármaco, modelo e concentração da seringa.
 4. Escolha a ação (alvo no efeito, alvo plasmático, taxa manual, bolus ou parar), o valor e clique **Aplicar** –
    a ação entra no **tempo atual** da linha do tempo.
@@ -74,9 +74,9 @@ Ce_i(t+1) = Ce_i(t)·e^(−λi) + Ae_i·I·(1 − e^(−λi))    Ce = Σ Ce_i
 taxa ideal = (alvo − Cp livre em 120 s) / Cp_udf(120 s). Para a bomba manual as taxas ideais viram degraus: a taxa
 só muda quando a ideal se afasta mais que a tolerância (8% propofol/opioides, 15% dex/cetamina/alfentanil), e o valor
 do degrau é `(ideal_início − ideal_fim)·f + ideal_fim` (f ≈ 0,52–0,75). A cada degrau o cálculo é refeito a partir do
-estado real previsto (malha fechada), já com a taxa arredondada para a resolução da bomba.
+estado real previsto (malha fechada), já com a taxa arredondada para a resolução de 0,1 ml/h.
 
-**Alvo no efeito**: bolus encontrado por busca binária para que o pico de Ce (respeitando a taxa máxima de bolus)
+**Alvo no efeito**: bolus encontrado por busca binária para que o pico de Ce
 seja igual ao alvo; pausa até o pico; depois manutenção como no alvo plasmático. Ao reduzir o alvo, pausa entre o
 tempo para Cp e o tempo para Ce caírem ao alvo (fator sigmoide do SimTIVA) e então retomada.
 
