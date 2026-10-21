@@ -769,7 +769,27 @@
     btnNotify.title = on ? 'Avisos de ajuste da bomba: ligados' : 'Avisos de ajuste da bomba: desligados';
   }
   try { applyNotify(localStorage.getItem(NOTIFY_KEY) !== 'off'); } catch (e) { applyNotify(true); }
+  // Os navegadores só permitem pedir autorização de notificação após um toque do usuário:
+  // o pedido é feito no primeiro toque/clique/tecla depois de abrir o app.
+  function askNotifyPermission() {
+    if (!state.notify || !('Notification' in window) || Notification.permission !== 'default') return false;
+    Notification.requestPermission().then((p) => {
+      if (p === 'granted') toast('Notificações ativadas: você será avisado a cada ajuste da bomba.');
+    });
+    return true;
+  }
+  function firstInteraction() {
+    document.removeEventListener('click', firstInteraction, true);
+    document.removeEventListener('keydown', firstInteraction, true);
+    unlockAudio();
+    askNotifyPermission();
+  }
+  document.addEventListener('click', firstInteraction, true);
+  document.addEventListener('keydown', firstInteraction, true);
+
   btnNotify.addEventListener('click', () => {
+    // avisos ligados mas sem autorização ainda: o toque no sino só pede a autorização
+    if (state.notify && askNotifyPermission()) return;
     const on = !state.notify;
     applyNotify(on);
     try { localStorage.setItem(NOTIFY_KEY, on ? 'on' : 'off'); } catch (e) { /* ignore */ }
