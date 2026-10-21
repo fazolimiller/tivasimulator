@@ -1,4 +1,4 @@
-/* Interface do TIVA Simulator */
+/* Interface do TCI Sim */
 (function () {
   'use strict';
 
