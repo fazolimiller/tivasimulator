@@ -1,6 +1,6 @@
 /* Service worker: guarda o app no aparelho para funcionar sem internet.
    Ao publicar uma nova versão, altere CACHE para forçar a atualização. */
-const CACHE = 'tcisim-v5';
+const CACHE = 'tcisim-v6';
 const FILES = [
   './', 'index.html', 'css/style.css', 'js/pk.js', 'js/tci.js', 'js/app.js',
   'vendor/chart.umd.min.js', 'manifest.webmanifest',

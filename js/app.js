@@ -45,7 +45,7 @@
     infusions: [],
     time: 0,
     playing: false,
-    speed: 60,
+    speed: 1, // sempre inicia em tempo real
   };
 
   function newInfusion(drugKey) {
@@ -55,7 +55,7 @@
 
   function snapshot() {
     return {
-      patient: state.patient, time: Math.round(state.time), speed: state.speed,
+      patient: state.patient, time: Math.round(state.time),
       infusions: state.infusions.map(({ id, drugKey, modelName, concentration, events }) => ({ id, drugKey, modelName, concentration, events })),
     };
   }
@@ -63,7 +63,6 @@
   function applySnapshot(d) {
     Object.assign(state.patient, d.patient || {});
     state.time = d.time || 0;
-    state.speed = d.speed || 60;
     state.infusions = (d.infusions || [])
       .filter((i) => PK.DRUGS[i.drugKey] && PK.MODELS[i.modelName])
       .map((i) => Object.assign({ actType: 'cet' }, i));
@@ -582,7 +581,7 @@
     setTime(j === 'reset' ? 0 : state.time + Number(j));
   }));
   slider.addEventListener('input', () => setTime(+slider.value, true));
-  $('#speed').addEventListener('change', (e) => { state.speed = +e.target.value; save(); });
+  $('#speed').addEventListener('change', (e) => { state.speed = +e.target.value; });
   document.addEventListener('keydown', (e) => {
     if (e.target.closest('input, select, textarea') || e.ctrlKey || e.metaKey || e.altKey) return;
     if (e.key === ' ') { e.preventDefault(); setPlaying(!state.playing); }

@@ -30,7 +30,7 @@ O app é um PWA: depois de publicado (GitHub Pages) pode ser instalado e funcion
 - **Android (Chrome)**: abra o link → menu ⋮ → **Instalar app** (ou "Adicionar à tela inicial").
 - **iPhone/iPad (Safari)**: abra o link → botão **Compartilhar** → **Adicionar à Tela de Início**.
 
-Ao publicar uma nova versão, altere `CACHE` em `sw.js` (ex.: `tcisim-v6`) para os aparelhos baixarem a atualização.
+Ao publicar uma nova versão, altere `CACHE` em `sw.js` (ex.: `tcisim-v7`) para os aparelhos baixarem a atualização.
 
 ## Uso por várias pessoas
 
