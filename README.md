@@ -21,6 +21,8 @@ taxas em ml/h com horário de cada ajuste. Serve para apoiar a tomada de decisã
 6. **Várias infusões simultâneas**: “+ Adicionar infusão” (ex.: propofol + remifentanil + dexmedetomidina),
    todas compartilham o mesmo paciente e o mesmo relógio.
 
+O gráfico mostra 30 minutos por padrão e acompanha o tempo atual; use **+** e **−** no canto do gráfico para ver de 10 min até a simulação inteira.
+
 O estado fica salvo no navegador (localStorage). Atalhos: espaço = reproduzir/pausar, ← / → = ±1 min (Shift = ±10 min).
 
 ## Instalar no celular (PWA)
@@ -30,7 +32,7 @@ O app é um PWA: depois de publicado (GitHub Pages) pode ser instalado e funcion
 - **Android (Chrome)**: abra o link → menu ⋮ → **Instalar app** (ou "Adicionar à tela inicial").
 - **iPhone/iPad (Safari)**: abra o link → botão **Compartilhar** → **Adicionar à Tela de Início**.
 
-Ao publicar uma nova versão, altere `CACHE` em `sw.js` (ex.: `tcisim-v7`) para os aparelhos baixarem a atualização.
+Ao publicar uma nova versão, altere `CACHE` em `sw.js` (ex.: `tcisim-v8`) para os aparelhos baixarem a atualização.
 
 ## Uso por várias pessoas
 

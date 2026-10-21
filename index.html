@@ -142,7 +142,14 @@
       </div>
       <div class="inf-body">
         <div class="inf-chart">
-          <div class="chart-wrap"><canvas></canvas></div>
+          <div class="chart-wrap">
+            <canvas></canvas>
+            <div class="zoom" role="group" aria-label="Tempo visível no gráfico">
+              <button type="button" data-zoom="1" title="Mostrar mais tempo" aria-label="Mostrar mais tempo">−</button>
+              <span class="zoom-label">30 min</span>
+              <button type="button" data-zoom="-1" title="Mostrar menos tempo (aproximar)" aria-label="Aproximar">+</button>
+            </div>
+          </div>
           <div class="legend">
             <span><i class="lg-cp"></i>Cp plasma</span>
             <span><i class="lg-ce"></i>Ce efeito</span>

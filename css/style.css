@@ -179,6 +179,13 @@ label.check { display: flex; align-items: center; gap: 8px; margin-top: 12px; fo
 .inf-chart, .inf-side { min-width: 0; }
 .chart-wrap { position: relative; height: 340px; width: 100%; }
 .chart-wrap canvas { cursor: crosshair; }
+.zoom {
+  position: absolute; top: 0; right: 44px; display: inline-flex; align-items: center; gap: 2px;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 999px; padding: 2px; box-shadow: var(--shadow);
+}
+.zoom button { min-height: 28px; width: 30px; padding: 0; border: none; border-radius: 50%; font-size: 1.15rem; font-weight: 700; line-height: 1; background: transparent; color: var(--primary); }
+.zoom button:hover { background: var(--primary-soft); }
+.zoom-label { font-size: .78rem; font-weight: 700; min-width: 48px; text-align: center; font-variant-numeric: tabular-nums; }
 .legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: .78rem; margin-top: 8px; align-items: center; }
 .legend span { display: inline-flex; align-items: center; gap: 6px; }
 .legend i { display: inline-block; width: 22px; height: 0; border-top: 2.5px solid var(--drug); }

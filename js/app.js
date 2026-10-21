@@ -46,6 +46,8 @@
     time: 0,
     playing: false,
     speed: 1, // sempre inicia em tempo real
+    zoom: 30, // minutos visíveis no gráfico
+    winStart: 0, // início da janela visível (s)
   };
 
   function newInfusion(drugKey) {
@@ -258,7 +260,7 @@
 
   function updateChartData(inf) {
     const r = inf.result, H = r.horizon;
-    const step = H > 6 * 3600 ? 30 : 10;
+    const step = H > 6 * 3600 ? 10 : 5;
     const cp = [], ce = [], tg = [], rate = [];
     for (let t = 0; t <= H; t += step) {
       cp.push({ x: t / 60, y: r.cp[t] });
@@ -277,20 +279,72 @@
       if (Math.abs(mlh - lastR) > 1e-9 || t === 0) { rate.push({ x: t / 60, y: mlh }); lastR = mlh; }
     }
     rate.push({ x: H / 60, y: lastR });
-    // bolus deixaria a escala da taxa ilegível: limitar o eixo pela maior taxa de manutenção
-    const maint = r.steps.filter((s) => s.type === 'rate').map((s) => s.mlh);
-    const maxMaint = maint.length ? Math.max(...maint) : 0;
     const ch = inf.chart;
     ch.data.datasets[0].data = cp;
     ch.data.datasets[1].data = ce;
     ch.data.datasets[2].data = tg;
     ch.data.datasets[3].data = rate;
-    ch.options.scales.x.max = H / 60;
-    ch.options.scales.x.ticks.stepSize = H > 6 * 3600 ? 60 : H > 2 * 3600 ? 30 : 15;
-    const maxConc = Math.max(...cp.map((p) => p.y), ...ce.map((p) => p.y), ...tg.map((p) => p.y || 0));
+    applyWindow(inf);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Janela de tempo do gráfico (zoom + e −)
+  // ---------------------------------------------------------------------------
+  const ZOOMS = [10, 15, 30, 60, 120, 240, 480, 720]; // minutos
+  const tickStep = (wm) => (wm <= 10 ? 1 : wm <= 15 ? 2 : wm <= 30 ? 5 : wm <= 60 ? 10 : wm <= 120 ? 15 : wm <= 240 ? 30 : 60);
+
+  // A janela acompanha o cursor: quando ele passa de 80% da janela, ela avança
+  function syncWindow(force) {
+    const H = horizon(), W = Math.min(state.zoom * 60, H);
+    let start = state.winStart;
+    if (force || state.time < start || state.time > start + W * 0.8) {
+      // início alinhado às marcações do eixo (ex.: 25, 30, 35 min)
+      const snap = tickStep(W / 60) * 60;
+      start = Math.floor((state.time - W * 0.2) / snap) * snap;
+    }
+    start = Math.max(0, Math.min(start, H - W));
+    const changed = start !== state.winStart;
+    state.winStart = start;
+    return changed;
+  }
+
+  function applyWindow(inf) {
+    const r = inf.result, ch = inf.chart;
+    const H = r.horizon, W = Math.min(state.zoom * 60, H);
+    const a = Math.round(state.winStart), b = Math.min(H, Math.round(state.winStart + W));
+    ch.options.scales.x.min = a / 60;
+    ch.options.scales.x.max = b / 60;
+    const wm = W / 60;
+    ch.options.scales.x.ticks.stepSize = tickStep(wm);
+    // escalas pelos valores visíveis
+    let maxConc = 0;
+    for (let t = a; t <= b; t++) {
+      maxConc = Math.max(maxConc, r.cp[t], r.ce[t], Number.isNaN(r.target[t]) ? 0 : r.target[t]);
+    }
     ch.options.scales.y.suggestedMax = maxConc * 1.1 || 1;
-    ch.options.scales.y2.max = maxMaint > 0 ? Math.ceil(maxMaint * 1.6) : undefined;
+    ch.options.scales.y.max = undefined;
+    // eixo da taxa: maior taxa de manutenção visível (bolus ficaria fora de escala)
+    let maxMaint = 0;
+    const steps = r.steps;
+    for (let i = 0; i < steps.length; i++) {
+      const st = steps[i], end = i + 1 < steps.length ? steps[i + 1].t : H;
+      if (st.type === 'rate' && st.t <= b && end >= a) maxMaint = Math.max(maxMaint, st.mlh);
+    }
+    ch.options.scales.y2.max = maxMaint > 0 ? Math.ceil(maxMaint * 1.4) : undefined;
     ch.update('none');
+    const lbl = $('.zoom-label', inf.el);
+    if (lbl) lbl.textContent = wm >= 60 ? `${nf(wm / 60, wm % 60 ? 1 : 0)} h` : `${Math.round(wm)} min`;
+  }
+
+  function setZoom(dir) {
+    const H = horizon() / 60;
+    let i = ZOOMS.indexOf(state.zoom);
+    if (i < 0) i = 2;
+    i = Math.max(0, Math.min(ZOOMS.length - 1, i + dir));
+    if (dir > 0 && ZOOMS[i - 1] >= H) return; // já mostra tudo
+    state.zoom = ZOOMS[i];
+    syncWindow(true);
+    for (const inf of state.infusions) applyWindow(inf);
   }
 
   // ---------------------------------------------------------------------------
@@ -352,6 +406,11 @@
       inf.events.sort((a, b) => a.t - b.t);
       refreshAfterEdit(inf);
       toast(`${PK.DRUGS[inf.drugKey].name}: ação aplicada em ${fmtTime(t)}`);
+    });
+
+    $('.zoom', el).addEventListener('click', (e) => {
+      const b = e.target.closest('[data-zoom]');
+      if (b) setZoom(+b.dataset.zoom);
     });
 
     $('tbody', el).addEventListener('click', (e) => {
@@ -551,7 +610,11 @@
     state.time = Math.max(0, Math.min(horizon(), t));
     clockEl.textContent = fmtTime(state.time);
     if (!fromSlider) slider.value = Math.round(state.time);
-    for (const inf of state.infusions) updateLive(inf);
+    const moved = syncWindow();
+    for (const inf of state.infusions) {
+      if (moved) applyWindow(inf);
+      updateLive(inf);
+    }
     updatePumpStrip();
     clearTimeout(setTime.saveTimer);
     setTime.saveTimer = setTimeout(save, 400);
