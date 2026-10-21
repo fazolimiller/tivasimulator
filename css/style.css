@@ -209,8 +209,21 @@ label.check { display: flex; align-items: center; gap: 8px; margin-top: 12px; fo
   font-variant-numeric: tabular-nums; letter-spacing: -.01em;
 }
 .pd-sub { color: var(--lcd-muted); font-size: .85rem; min-height: 1.2em; }
-.pd-next { margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,.08); color: #d6e4f2; font-size: .85rem; min-height: 1.4em; }
-.pd-next strong { color: var(--lcd-text); font-variant-numeric: tabular-nums; }
+/* Próxima ação (abaixo do visor) */
+.next-card {
+  margin-top: 10px; padding: 10px 14px; border-radius: 12px;
+  background: var(--drug-soft, var(--primary-soft)); border: 1px solid var(--drug, var(--primary));
+}
+.nx-label { font-size: .7rem; text-transform: uppercase; letter-spacing: .1em; font-weight: 700; color: var(--muted); }
+.nx-main { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 10px; margin-top: 2px; font-variant-numeric: tabular-nums; }
+.nx-what { font-family: var(--font-title); font-size: 1.5rem; font-weight: 700; line-height: 1.2; color: var(--text); }
+.nx-in { font-size: 1.05rem; }
+.nx-in strong { font-weight: 700; }
+.nx-at { font-size: .82rem; color: var(--muted); margin-left: auto; }
+.nx-none { font-size: .88rem; color: var(--muted); }
+.next-card.soon { border-color: #e08a00; background: rgba(255, 170, 0, .14); }
+.next-card.soon .nx-in strong { color: #b86e00; }
+:root[data-theme="dark"] .next-card.soon .nx-in strong { color: #ffc35a; }
 
 .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 10px 0 0; }
 .stats div { background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; padding: 6px 10px; }

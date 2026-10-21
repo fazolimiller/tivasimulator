@@ -19,6 +19,14 @@
     const m = Math.floor(s / 60), sec = s % 60;
     return m >= 60 ? `${Math.floor(m / 60)} h ${String(m % 60).padStart(2, '0')} min` : `${m}:${String(sec).padStart(2, '0')}`;
   }
+  // Tempo restante por extenso: "45 s", "3 min 15 s", "1 h 05 min"
+  function fmtLeft(s) {
+    s = Math.max(0, Math.round(s));
+    const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
+    if (h) return `${h} h ${String(m).padStart(2, '0')} min`;
+    if (!m) return `${sec} s`;
+    return sec ? `${m} min ${String(sec).padStart(2, '0')} s` : `${m} min`;
+  }
   function hexA(hex, a) {
     const n = parseInt(hex.slice(1), 16);
     return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`;
@@ -551,11 +559,13 @@
     stEl.className = 'pd-state ' + mode;
     stEl.textContent = { run: 'INFUNDINDO', pause: 'PAUSADA', bolus: 'BOLUS' }[mode];
 
-    const nc = $('.next-change', el);
+    const nc = $('.next-change', el), card = $('.next-card', el);
+    const left = next ? next.t - state.time : Infinity;
+    card.classList.toggle('soon', left <= 60);
     if (next) {
-      const what = next.type === 'bolus' ? `bolus ${nf(next.ml, 1)} ml` : next.mlh === 0 ? 'pausar' : `${nf(next.mlh, res)} ml/h`;
-      nc.innerHTML = `Próximo: <strong>${what}</strong> em <strong>${fmtDur(next.t - state.time)}</strong> <span style="opacity:.7">(${fmtTime(next.t)})</span>`;
-    } else nc.textContent = r.steps.length ? 'Sem outros ajustes no período simulado.' : 'Aplique uma ação para gerar o esquema.';
+      const what = next.type === 'bolus' ? `Bolus ${nf(next.ml, 1)} ml` : next.mlh === 0 ? 'Pausar' : `${nf(next.mlh, res)} ml/h`;
+      nc.innerHTML = `<strong class="nx-what">${what}</strong><span class="nx-in">em <strong>${fmtLeft(left)}</strong></span><span class="nx-at">às ${fmtTime(next.t)}</span>`;
+    } else nc.innerHTML = `<span class="nx-none">${r.steps.length ? 'Sem outros ajustes no período simulado.' : 'Aplique uma ação para gerar o esquema.'}</span>`;
 
     const rows = $('tbody', el).rows;
     for (let i = 0; i < rows.length; i++) {
