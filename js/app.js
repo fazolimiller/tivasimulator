@@ -154,6 +154,8 @@
     inf.sys = sys;
   }
 
+  const rateDigits = () => (state.settings.rateResolution < 1 ? 1 : 0);
+
   // Passo da bomba vigente no instante t
   function currentStep(inf, t) {
     const steps = inf.result.steps;
@@ -621,17 +623,21 @@
     }
     updatePumpStrip();
   }
+  // Situação atual da bomba: o que está programado agora e quanto falta para o próximo ajuste
+  function pumpNow(inf) {
+    const r = inf.result;
+    const t = Math.min(Math.round(state.time), r.horizon);
+    const { cur, next } = currentStep(inf, t);
+    let now;
+    if (cur && cur.type === 'bolus' && t < cur.t + Math.max(1, cur.duration)) now = `bolus ${nf(cur.ml, 1)} ml`;
+    else now = `${nf((r.rate[Math.min(t, r.horizon - 1)] * 3600) / inf.concentration, rateDigits())} ml/h`;
+    return { now, next, soonS: next ? next.t - state.time : Infinity };
+  }
   function updatePumpStrip() {
-    const res = state.settings.rateResolution < 1 ? 1 : 0;
     for (const inf of state.infusions) {
       if (!inf.chip || !inf.result) continue;
-      const drug = PK.DRUGS[inf.drugKey], r = inf.result;
-      const t = Math.min(Math.round(state.time), r.horizon);
-      const { cur, next } = currentStep(inf, t);
-      let now;
-      if (cur && cur.type === 'bolus' && t < cur.t + Math.max(1, cur.duration)) now = `bolus ${nf(cur.ml, 1)} ml`;
-      else now = `${nf((r.rate[Math.min(t, r.horizon - 1)] * 3600) / inf.concentration, res)} ml/h`;
-      const soonS = next ? next.t - state.time : Infinity;
+      const drug = PK.DRUGS[inf.drugKey];
+      const { now, next, soonS } = pumpNow(inf);
       inf.chip.classList.toggle('alert', soonS <= 60);
       inf.chip.innerHTML = `<span class="dot" style="background:${drug.color}"></span>${drug.name} <strong>${now}</strong>` +
         (next ? ` <span class="soon">↻ ${fmtDur(soonS)}</span>` : '');
@@ -657,6 +663,7 @@
       updateLive(inf);
     }
     updatePumpStrip();
+    updateStatus();
     clearTimeout(setTime.saveTimer);
     setTime.saveTimer = setTimeout(save, 400);
   }
@@ -685,13 +692,17 @@
     btnPlay.textContent = p ? '❚❚' : '▶';
     btnPlay.setAttribute('aria-label', p ? 'Pausar' : 'Reproduzir');
     lastWall = null;
-    if (p) { unlockAudio(); requestAnimationFrame(tick); }
+    if (p) {
+      unlockAudio();
+      askNotifyPermission();
+      requestAnimationFrame(tick);
+    }
+    statusPlayback(p);
   }
 
   // ---------------------------------------------------------------------------
   // Avisos de ajuste da bomba (som, vibração e notificação do sistema)
   // ---------------------------------------------------------------------------
-  const rateDigits = () => (state.settings.rateResolution < 1 ? 1 : 0);
   function describeStep(st) {
     if (st.type === 'bolus') return `Bolus ${nf(st.ml, 1)} ml`;
     if (st.note === 'swap') return 'Parar para trocar a seringa';
@@ -770,7 +781,7 @@
   }
   try { applyNotify(localStorage.getItem(NOTIFY_KEY) !== 'off'); } catch (e) { applyNotify(true); }
   // Os navegadores só permitem pedir autorização de notificação após um toque do usuário:
-  // o pedido é feito no primeiro toque/clique/tecla depois de abrir o app.
+  // o pedido é feito ao apertar ▶ (início da infusão) ou no sino.
   function askNotifyPermission() {
     if (!state.notify || !('Notification' in window) || Notification.permission !== 'default') return false;
     Notification.requestPermission().then((p) => {
@@ -778,14 +789,67 @@
     });
     return true;
   }
-  function firstInteraction() {
-    document.removeEventListener('click', firstInteraction, true);
-    document.removeEventListener('keydown', firstInteraction, true);
-    unlockAudio();
-    askNotifyPermission();
+
+  // ---------------------------------------------------------------------------
+  // Aviso contínuo (como um cronômetro): tempo de infusão e taxa atual na área de
+  // notificações e na tela de bloqueio, pelo controle de mídia do sistema (Media Session).
+  // Um áudio silencioso em repetição mantém o app ativo em segundo plano.
+  // ---------------------------------------------------------------------------
+  const hasMediaSession = 'mediaSession' in navigator;
+  let statusAudio = null, statusLast = 0;
+  function silentWav(seconds) {
+    const rate = 8000, n = rate * seconds, buf = new ArrayBuffer(44 + n), v = new DataView(buf);
+    const str = (o, x) => { for (let i = 0; i < x.length; i++) v.setUint8(o + i, x.charCodeAt(i)); };
+    str(0, 'RIFF'); v.setUint32(4, 36 + n, true); str(8, 'WAVE'); str(12, 'fmt ');
+    v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+    v.setUint32(24, rate, true); v.setUint32(28, rate, true); v.setUint16(32, 1, true); v.setUint16(34, 8, true);
+    str(36, 'data'); v.setUint32(40, n, true);
+    new Uint8Array(buf, 44).fill(128); // 8 bits sem sinal: 128 = silêncio
+    return URL.createObjectURL(new Blob([buf], { type: 'audio/wav' }));
   }
-  document.addEventListener('click', firstInteraction, true);
-  document.addEventListener('keydown', firstInteraction, true);
+  function statusPlayback(playing) {
+    if (!hasMediaSession) return;
+    if (playing && state.notify) {
+      if (!statusAudio) {
+        statusAudio = new Audio(silentWav(10));
+        statusAudio.loop = true;
+      }
+      statusAudio.play().catch(() => { /* sem permissão de reprodução */ });
+      navigator.mediaSession.playbackState = 'playing';
+    } else {
+      if (statusAudio) statusAudio.pause();
+      navigator.mediaSession.playbackState = statusAudio ? 'paused' : 'none';
+    }
+    statusLast = 0;
+    updateStatus();
+  }
+  function updateStatus() {
+    if (!hasMediaSession || !statusAudio || !state.infusions.length) return;
+    const nowMs = performance.now();
+    if (state.playing && nowMs - statusLast < 1000) return;
+    statusLast = nowMs;
+    const parts = state.infusions.filter((inf) => inf.result).map((inf) => ({ inf, ...pumpNow(inf) }));
+    const title = parts.map((x) => `${PK.DRUGS[x.inf.drugKey].name} ${x.now}`).join(' · ');
+    const soon = parts.filter((x) => x.next).sort((a, b) => a.soonS - b.soonS)[0];
+    const artist = `Infusão ${fmtTime(state.time)}` +
+      (soon ? ` · próximo: ${describeStep(soon.next)} em ${fmtLeft(soon.soonS)}` : '');
+    try {
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title, artist, album: 'TCI Sim',
+        artwork: [{ src: 'icons/icon-192.png', sizes: '192x192', type: 'image/png' }, { src: 'icons/icon-512.png', sizes: '512x512', type: 'image/png' }],
+      });
+      // barra de progresso do sistema = tempo de infusão (o próprio sistema a faz andar)
+      if (navigator.mediaSession.setPositionState) {
+        navigator.mediaSession.setPositionState({ duration: horizon(), position: Math.min(state.time, horizon()), playbackRate: state.playing ? state.speed : 1 });
+      }
+    } catch (e) { /* sem suporte */ }
+  }
+  if (hasMediaSession) {
+    try {
+      navigator.mediaSession.setActionHandler('play', () => setPlaying(true));
+      navigator.mediaSession.setActionHandler('pause', () => setPlaying(false));
+    } catch (e) { /* ignore */ }
+  }
 
   btnNotify.addEventListener('click', () => {
     // avisos ligados mas sem autorização ainda: o toque no sino só pede a autorização
@@ -793,6 +857,7 @@
     const on = !state.notify;
     applyNotify(on);
     try { localStorage.setItem(NOTIFY_KEY, on ? 'on' : 'off'); } catch (e) { /* ignore */ }
+    statusPlayback(state.playing);
     if (!on) { toast('Avisos desligados.'); return; }
     unlockAudio();
     if ('Notification' in window && Notification.permission === 'default') {
@@ -810,7 +875,7 @@
     setTime(j === 'reset' ? 0 : state.time + Number(j));
   }));
   slider.addEventListener('input', () => setTime(+slider.value, true));
-  $('#speed').addEventListener('change', (e) => { state.speed = +e.target.value; });
+  $('#speed').addEventListener('change', (e) => { state.speed = +e.target.value; statusLast = 0; updateStatus(); });
   document.addEventListener('keydown', (e) => {
     if (e.target.closest('input, select, textarea') || e.ctrlKey || e.metaKey || e.altKey) return;
     if (e.key === ' ') { e.preventDefault(); setPlaying(!state.playing); }
