@@ -14,7 +14,7 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="TCI Sim">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <link rel="stylesheet" href="css/style.css?v=15">
+  <link rel="stylesheet" href="css/style.css?v=16">
 </head>
 <body>
   <header class="topbar">
@@ -109,8 +109,17 @@
           <path d="M50 64 V70 M45 70 H55 M47 70 V75 H53 V70 M50 75 V82" stroke="#FFFFFF" stroke-width="4" stroke-linejoin="round"/>
         </svg>anestec</span>
     </span>
-    <span class="footer-tag">Tecnologia a serviço da anestesia</span>
+    <span class="footer-credit">Desenvolvido por Dr. Miller Fazoli – CRM-SP 187.509. Anestec – São José dos Campos</span>
+    <span class="footer-tag">Em serviço da segurança do paciente</span>
+    <span class="footer-copy">© <span id="year">2026</span> Anestec · Dr. Miller Fazoli. Todos os direitos reservados.</span>
   </footer>
+
+  <div id="installBar" class="install-bar" role="dialog" aria-label="Instalar o app" hidden>
+    <img src="icons/icon-192.png" alt="" width="40" height="40">
+    <div class="install-text"></div>
+    <button type="button" class="primary install-go" hidden>Instalar</button>
+    <button type="button" class="install-close" aria-label="Fechar">✕</button>
+  </div>
 
   <div id="toast" class="toast" role="status" hidden></div>
 
@@ -229,8 +238,8 @@ Cp = ΣCp<sub>i</sub> (i=1..3)    Ce = ΣCe<sub>i</sub> (i=1..4, λ<sub>4</sub>=
   </dialog>
 
   <script src="vendor/chart.umd.min.js"></script>
-  <script src="js/pk.js?v=15"></script>
-  <script src="js/tci.js?v=15"></script>
-  <script src="js/app.js?v=15"></script>
+  <script src="js/pk.js?v=16"></script>
+  <script src="js/tci.js?v=16"></script>
+  <script src="js/app.js?v=16"></script>
 </body>
 </html>

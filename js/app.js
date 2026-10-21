@@ -991,6 +991,49 @@
   setTime(state.time);
   if (fromLink) { save(); toast('Cenário carregado do link compartilhado.'); }
 
+  $('#year').textContent = new Date().getFullYear();
+
+  // Convite para instalar: botão "Instalar" (Android/Chrome/Edge) ou instruções (iPhone/iPad,
+  // onde o Safari não permite instalar por código). Não aparece se já instalado ou se dispensado.
+  (function installInvite() {
+    const INSTALL_KEY = 'tivasimulator.installDismissed';
+    const bar = $('#installBar'), text = $('.install-text', bar), go = $('.install-go', bar);
+    const standalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+    let dismissed = false;
+    try { dismissed = localStorage.getItem(INSTALL_KEY) === '1'; } catch (e) { /* ignore */ }
+    if (standalone || dismissed) return;
+    const show = () => { bar.hidden = false; document.body.classList.add('install-open'); };
+    const hide = (remember) => {
+      bar.hidden = true;
+      document.body.classList.remove('install-open');
+      if (remember) try { localStorage.setItem(INSTALL_KEY, '1'); } catch (e) { /* ignore */ }
+    };
+    $('.install-close', bar).addEventListener('click', () => hide(true));
+
+    const ios = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    if (ios) {
+      const share = '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-label="Compartilhar"><path d="M12 3v12M8 7l4-4 4 4"/><path d="M6 11H5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1h-1"/></svg>';
+      text.innerHTML = `<strong>Instale o TCI Sim no iPhone:</strong> toque em ${share} <strong>Compartilhar</strong> e depois em <strong>Adicionar à Tela de Início</strong>.`;
+      show();
+      return;
+    }
+    let deferred = null;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferred = e;
+      text.innerHTML = '<strong>Instale o TCI Sim</strong> para abrir direto da tela inicial e usar sem internet.';
+      go.hidden = false;
+      show();
+    });
+    go.addEventListener('click', () => {
+      if (!deferred) return;
+      deferred.prompt();
+      deferred.userChoice.then((c) => hide(c.outcome === 'dismissed'));
+      deferred = null;
+    });
+    window.addEventListener('appinstalled', () => hide(true));
+  })();
+
   // Aplicativo instalável (PWA): funciona offline depois do primeiro acesso
   // Atualização automática: procura nova versão ao abrir/voltar ao app e recarrega quando ela assume
   if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {

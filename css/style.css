@@ -311,6 +311,24 @@ tbody tr.bolus td:nth-child(3) { font-weight: 700; }
 .anestec { display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-title); font-weight: 700; font-size: 1.35rem; color: #2b85ff; letter-spacing: -.01em; }
 .anestec svg { width: 26px; height: 29px; }
 .footer-tag { font-size: .8rem; color: var(--gray); }
+.site-footer { flex-direction: column; gap: 6px; }
+.footer-credit { font-size: .82rem; color: #c4d3e3; }
+.footer-copy { font-size: .75rem; color: var(--gray); }
+
+/* Convite para instalar o app */
+.install-bar {
+  position: fixed; left: 12px; right: 12px; bottom: max(12px, env(safe-area-inset-bottom)); z-index: 30;
+  max-width: 560px; margin: 0 auto; display: flex; align-items: center; gap: 12px;
+  background: var(--header); color: var(--header-text); border-radius: 14px; padding: 10px 12px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.3);
+}
+.install-bar[hidden] { display: none; }
+body.install-open .site-footer { padding-bottom: 120px; }
+.install-bar img { border-radius: 10px; flex: none; }
+.install-text { flex: 1; font-size: .86rem; line-height: 1.35; }
+.install-text strong { color: #fff; }
+.install-text svg { vertical-align: -3px; }
+.install-close { flex: none; width: 34px; min-height: 34px; padding: 0; border-radius: 50%; background: transparent; border-color: rgba(255,255,255,.25); color: var(--header-text); }
 
 dialog { border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); color: var(--text); max-width: 720px; width: calc(100% - 32px); }
 dialog::backdrop { background: rgba(5, 15, 30, .55); }
