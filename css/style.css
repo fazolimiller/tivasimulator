@@ -194,9 +194,20 @@ label.check { display: flex; align-items: center; gap: 8px; margin-top: 12px; fo
 .stats dd { margin: 2px 0 0; font-weight: 700; font-variant-numeric: tabular-nums; font-size: 1rem; white-space: nowrap; }
 .stats dd small { font-weight: 500; color: var(--muted); font-size: .72rem; }
 
-/* Ações */
-.action { margin-top: 14px; }
-.action-head { display: flex; justify-content: space-between; font-size: .8rem; font-weight: 700; color: var(--muted); margin-bottom: 6px; }
+/* Ações (barra acima do gráfico) */
+.inf-actionbar {
+  margin: 0 18px 16px; padding: 12px 14px; border-radius: 12px;
+  background: var(--drug-soft, var(--primary-soft)); border: 1px solid var(--drug, var(--primary));
+}
+.action { display: grid; grid-template-columns: auto minmax(0, 1.4fr) minmax(0, 1fr); gap: 8px 14px; align-items: center; }
+.inf-actionbar .action-head { flex-direction: column; margin: 0; color: var(--text); font-size: .95rem; }
+.inf-actionbar .action-time { font-size: .8rem; color: var(--muted); font-weight: 600; }
+.inf-actionbar .action-row { margin: 0; }
+.inf-actionbar .seg, .inf-actionbar input { background: var(--surface); }
+.inf-actionbar .seg button.on { background: var(--drug, var(--primary)); color: #fff; }
+.inf-actionbar .events { margin-top: 10px; }
+.inf-actionbar .chip { background: var(--surface); }
+.action-head { display: flex; justify-content: space-between; gap: 2px 8px; font-size: .8rem; font-weight: 700; color: var(--muted); margin-bottom: 6px; }
 .action-time { font-variant-numeric: tabular-nums; color: var(--text); }
 .seg { display: grid; grid-template-columns: repeat(5, 1fr); background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; padding: 3px; gap: 3px; }
 .seg button { border: none; background: transparent; min-height: 32px; padding: 4px 2px; font-size: .82rem; border-radius: 8px; color: var(--muted); }
@@ -250,6 +261,8 @@ dialog::backdrop { background: rgba(5, 15, 30, .55); }
 .dialog-actions { display: flex; justify-content: flex-end; margin-top: 12px; }
 
 @media (max-width: 960px) {
+  .action { grid-template-columns: minmax(0, 1fr); }
+  .inf-actionbar .action-head { flex-direction: row; }
   .setup-body { grid-template-columns: minmax(0, 1fr); }
   .inf-body { grid-template-columns: minmax(0, 1fr); }
   .chart-wrap { height: 270px; }

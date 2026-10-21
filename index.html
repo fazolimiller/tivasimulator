@@ -98,6 +98,24 @@
         <span class="badge inf-conc"></span>
         <button type="button" class="icon-btn btn-remove" title="Remover infusão" aria-label="Remover infusão">✕</button>
       </header>
+      <div class="inf-actionbar">
+        <form class="action">
+          <div class="action-head"><span>Nova ação</span><span class="action-time"></span></div>
+          <div class="seg act-types" role="radiogroup" aria-label="Tipo de ação">
+            <button type="button" data-type="cet" class="on">Alvo Ce</button>
+            <button type="button" data-type="cpt">Alvo Cp</button>
+            <button type="button" data-type="rate">ml/h</button>
+            <button type="button" data-type="bolus">Bolus</button>
+            <button type="button" data-type="stop">Parar</button>
+          </div>
+          <div class="action-row">
+            <span class="input-unit"><input class="act-value" type="text" inputmode="decimal" autocomplete="off" aria-label="Valor"><em class="act-unit"></em></span>
+            <button type="submit" class="primary">Aplicar</button>
+          </div>
+        </form>
+
+        <div class="events"></div>
+      </div>
       <div class="inf-body">
         <div class="inf-chart">
           <div class="chart-wrap"><canvas></canvas></div>
@@ -125,23 +143,6 @@
             <div><dt>Alvo</dt><dd class="target-now">—</dd></div>
             <div><dt>Volume</dt><dd class="vol-now">—</dd></div>
           </dl>
-
-          <form class="action">
-            <div class="action-head"><span>Nova ação</span><span class="action-time"></span></div>
-            <div class="seg act-types" role="radiogroup" aria-label="Tipo de ação">
-              <button type="button" data-type="cet" class="on">Alvo Ce</button>
-              <button type="button" data-type="cpt">Alvo Cp</button>
-              <button type="button" data-type="rate">ml/h</button>
-              <button type="button" data-type="bolus">Bolus</button>
-              <button type="button" data-type="stop">Parar</button>
-            </div>
-            <div class="action-row">
-              <span class="input-unit"><input class="act-value" type="text" inputmode="decimal" autocomplete="off" aria-label="Valor"><em class="act-unit"></em></span>
-              <button type="submit" class="primary">Aplicar</button>
-            </div>
-          </form>
-
-          <div class="events"></div>
 
           <details class="config">
             <summary>Fármaco, modelo e diluição</summary>

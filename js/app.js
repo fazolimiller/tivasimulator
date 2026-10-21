@@ -693,7 +693,6 @@
   }
   syncHorizon();
   writeForm();
-  if (window.innerWidth < 960 || state.infusions.some((i) => i.events.length)) $('#setupPanel').open = false;
   for (const inf of state.infusions) createCard(inf);
   renderPumpStrip();
   setTime(state.time);
