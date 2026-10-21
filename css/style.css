@@ -186,7 +186,7 @@ label.check { display: flex; align-items: center; gap: 8px; margin-top: 12px; fo
 .pd-state.bolus { color: #ff9b9b; background: rgba(255,155,155,.14); }
 .pd-rate { margin: 4px 0 0; }
 .rate-now {
-  font: 700 2.4rem/1.1 ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
+  font-size: 2.3rem; font-weight: 600; line-height: 1.1;
   font-variant-numeric: tabular-nums; letter-spacing: -.01em;
 }
 .pd-sub { color: var(--lcd-muted); font-size: .85rem; min-height: 1.2em; }
