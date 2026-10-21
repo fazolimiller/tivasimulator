@@ -1,0 +1,89 @@
+# TIVA Simulator – TCI manual para bombas em ml/h
+
+Aplicativo web (HTML + JavaScript puro, funciona offline) que simula a **infusão alvo-controlada (TCI)**
+e converte o alvo desejado (Cp ou Ce) em um **esquema executável em bombas comuns**: bolus em ml e
+taxas em ml/h com horário de cada ajuste. Serve para apoiar a tomada de decisão em hospitais sem bombas TCI.
+
+> ⚠️ Ferramenta educacional/apoio à decisão. As concentrações são previsões populacionais dos modelos.
+> Confira doses, diluições e programação da bomba e monitore o paciente clinicamente.
+
+## Como usar
+
+1. Abra `index.html` no navegador (ou publique a pasta no GitHub Pages). Não precisa de servidor nem internet.
+2. Preencha os dados do paciente e da bomba (taxa máxima de bolus, resolução, intervalo mínimo entre ajustes).
+3. Em cada infusão escolha fármaco, modelo e concentração da seringa.
+4. Escolha a ação (alvo no efeito, alvo plasmático, taxa manual, bolus ou parar), o valor e clique **Aplicar** –
+   a ação entra no **tempo atual** da linha do tempo.
+5. Use os controles de tempo (▶, ±10 s, ±1 min, ±10 min, barra deslizante ou clique no gráfico) para avançar/retroceder.
+   O painel mostra a taxa que deve estar na bomba naquele instante, Cp, Ce, volume infundido e o próximo ajuste.
+6. **Várias infusões simultâneas**: “+ Adicionar infusão” (ex.: propofol + remifentanil + dexmedetomidina),
+   todas compartilham o mesmo paciente e o mesmo relógio.
+
+O estado fica salvo no navegador (localStorage).
+
+## Fármacos e modelos
+
+| Fármaco | Modelos |
+|---|---|
+| Propofol | Marsh, Schnider, Eleveld, Paedfusor |
+| Remifentanil | Minto, Eleveld |
+| Fentanil | Shafer |
+| Alfentanil | Maitre |
+| Dexmedetomidina | Hannivoort, Dyck |
+| Cetamina | Kamp, Domino |
+
+Os parâmetros e covariáveis (massa magra de James, massa livre de gordura de Al-Sallami, maturação/envelhecimento
+de Eleveld, ke0 de cada modelo) foram obtidos por engenharia reversa do código público do
+[SimTIVA](https://simtiva.app) (`pharmacology.js`) e conferidos com as publicações originais.
+
+## Fórmulas
+
+**Modelo**: três compartimentos + compartimento efeito. As constantes (min⁻¹) são convertidas para s⁻¹ e
+λ₁..₃ são as raízes da cúbica característica (`cube.c` do STANPUMP):
+
+```
+a0 = k10·k21·k31
+a1 = k10·k31 + k21·k31 + k21·k13 + k10·k21 + k31·k12
+a2 = k10 + k12 + k13 + k21 + k31
+λ³ − a2·λ² + a1·λ − a0 = 0
+```
+
+Coeficientes da resposta a uma infusão unitária (1 unidade/s):
+
+```
+A_i  = (k21−λi)(k31−λi) / [(λi−λj)(λi−λk)] / V1 / λi              (plasma, i=1..3)
+Ae_i = A_i · ke0 / (ke0 − λi)                                       (efeito, i=1..3)
+Ae_4 = (ke0−k21)(ke0−k31) / [(λ1−ke0)(λ2−ke0)(λ3−ke0)] / V1         (efeito, λ4 = ke0)
+```
+
+Atualização exata a cada segundo com taxa constante I:
+
+```
+Cp_i(t+1) = Cp_i(t)·e^(−λi) + A_i·I·(1 − e^(−λi))     Cp = Σ Cp_i
+Ce_i(t+1) = Ce_i(t)·e^(−λi) + Ae_i·I·(1 − e^(−λi))    Ce = Σ Ce_i
+```
+
+**Alvo plasmático**: bolus = (alvo − Cp prevista em 1 s sem infusão) / Cp_udf(1 s). Em seguida, a cada 120 s,
+taxa ideal = (alvo − Cp livre em 120 s) / Cp_udf(120 s). Para a bomba manual as taxas ideais viram degraus: a taxa
+só muda quando a ideal se afasta mais que a tolerância (8% propofol/opioides, 15% dex/cetamina/alfentanil), e o valor
+do degrau é `(ideal_início − ideal_fim)·f + ideal_fim` (f ≈ 0,52–0,75). A cada degrau o cálculo é refeito a partir do
+estado real previsto (malha fechada), já com a taxa arredondada para a resolução da bomba.
+
+**Alvo no efeito**: bolus encontrado por busca binária para que o pico de Ce (respeitando a taxa máxima de bolus)
+seja igual ao alvo; pausa até o pico; depois manutenção como no alvo plasmático. Ao reduzir o alvo, pausa entre o
+tempo para Cp e o tempo para Ce caírem ao alvo (fator sigmoide do SimTIVA) e então retomada.
+
+## Testes
+
+```
+node tests/validate_ode.js   # compara a solução analítica com integração numérica RK4 (todos os modelos)
+node tests/smoke.js          # imprime esquemas de exemplo
+```
+
+## Estrutura
+
+- `index.html`, `css/style.css` – interface
+- `js/pk.js` – modelos e motor farmacocinético
+- `js/tci.js` – geração dos esquemas (bolus/ml/h) e simulação
+- `js/app.js` – interface, gráficos (Chart.js) e linha do tempo
+- `vendor/chart.umd.min.js` – Chart.js 4.4.4 (MIT), incluído para uso offline
