@@ -698,4 +698,9 @@
   renderPumpStrip();
   setTime(state.time);
   if (fromLink) { save(); toast('Cenário carregado do link compartilhado.'); }
+
+  // Aplicativo instalável (PWA): funciona offline depois do primeiro acesso
+  if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+    navigator.serviceWorker.register('sw.js').catch(() => { /* sem suporte */ });
+  }
 })();

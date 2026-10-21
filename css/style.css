@@ -84,6 +84,9 @@ input[type="range"] { padding: 0; border: none; background: transparent; accent-
 .topbar {
   display: flex; align-items: center; justify-content: space-between; gap: 12px;
   padding: 12px 20px; background: var(--header); color: var(--header-text);
+  padding-top: max(12px, env(safe-area-inset-top));
+  padding-left: max(20px, env(safe-area-inset-left));
+  padding-right: max(20px, env(safe-area-inset-right));
 }
 .brand { display: flex; align-items: center; gap: 12px; }
 .logo { width: 34px; height: 34px; color: #5fe0c4; flex: none; }
@@ -96,7 +99,7 @@ input[type="range"] { padding: 0; border: none; background: transparent; accent-
 .top-btn:hover { background: rgba(255,255,255,.16); border-color: rgba(255,255,255,.35); }
 .top-btn.icon { width: 40px; padding: 0; font-size: 1.1rem; }
 
-main { max-width: 1440px; margin: 0 auto; padding: 18px 20px 40px; display: flex; flex-direction: column; gap: 16px; }
+main { max-width: 1440px; margin: 0 auto; padding: 18px max(20px, env(safe-area-inset-right)) max(40px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left)); display: flex; flex-direction: column; gap: 16px; }
 
 .panel, .infusion, .timebar {
   background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow);

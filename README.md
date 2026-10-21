@@ -21,6 +21,15 @@ taxas em ml/h com horário de cada ajuste. Serve para apoiar a tomada de decisã
 
 O estado fica salvo no navegador (localStorage). Atalhos: espaço = reproduzir/pausar, ← / → = ±1 min (Shift = ±10 min).
 
+## Instalar no celular (PWA)
+
+O app é um PWA: depois de publicado (GitHub Pages) pode ser instalado e funciona **sem internet**.
+
+- **Android (Chrome)**: abra o link → menu ⋮ → **Instalar app** (ou "Adicionar à tela inicial").
+- **iPhone/iPad (Safari)**: abra o link → botão **Compartilhar** → **Adicionar à Tela de Início**.
+
+Ao publicar uma nova versão, altere `CACHE` em `sw.js` (ex.: `tivasim-v2`) para os aparelhos baixarem a atualização.
+
 ## Uso por várias pessoas
 
 - Publicado no GitHub Pages, qualquer número de pessoas pode abrir o app ao mesmo tempo; cada aparelho tem a sua
