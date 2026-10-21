@@ -38,7 +38,7 @@
    * Simula uma infusão.
    * @param {object} sys sistema criado por PK.createSystem
    * @param {{concentration:number, events:Array}} inf
-   *        events: {t (s), type:'cpt'|'cet'|'rate'|'bolus'|'stop', value}
+   *        events: {t (s), type:'cpt'|'cet'|'rate'|'bolus'|'stop'|'swap'|'resume', value}
    *        - cpt/cet: value = alvo (unidade de concentração do fármaco)
    *        - rate: value = ml/h
    *        - bolus: value = dose (mg ou mcg)
@@ -254,6 +254,7 @@
 
     const events = (inf.events || []).filter((e) => e.t >= 0 && e.t < H).slice().sort((a, b) => a.t - b.t);
     let mode = null; // { type, value } do modo vigente (para retomar após bolus)
+    let swapping = false; // bomba parada para troca de seringa
 
     for (let i = 0; i < events.length; i++) {
       const ev = events[i];
@@ -266,9 +267,36 @@
       t = Math.max(t, tStart);
       if (t >= tEnd) continue;
 
+      if (ev.type === 'swap') {
+        // troca de seringa: para a bomba, mas guarda o modo para o reinício
+        swapping = true;
+        fillTarget(mode || {}, t, tEnd);
+        announceRate(0, { note: 'swap' });
+        emit(0, tEnd - t, tEnd);
+        continue;
+      }
+      if (ev.type === 'resume') {
+        // seringa reposta: retoma o modo anterior a partir das concentrações atuais
+        swapping = false;
+        if (mode) fillTarget(mode, t, tEnd);
+        if (mode && mode.type === 'cpt') cptSegment(mode.value, tEnd, true);
+        else if (mode && mode.type === 'cet') cetSegment(mode.value, tEnd);
+        else if (mode && mode.type === 'rate') {
+          announceRate(mode.value, { note: 'resume' });
+          emit(mlhToRate(mode.value), tEnd - t, tEnd);
+        } else {
+          announceRate(0, { note: 'resume' });
+          emit(0, tEnd - t, tEnd);
+        }
+        continue;
+      }
+
       if (ev.type === 'bolus') {
         giveBolus(ev.value, tEnd, 'manual');
-        if (mode && (mode.type === 'cpt' || mode.type === 'cet')) {
+        if (swapping) {
+          announceRate(0);
+          emit(0, tEnd - t, tEnd);
+        } else if (mode && (mode.type === 'cpt' || mode.type === 'cet')) {
           fillTarget(mode, t, tEnd);
           // após bolus manual em TCI, retomar como alvo plasmático (sem novo bolus)
           if (mode.type === 'cpt') cptSegment(mode.value, tEnd, false);
@@ -283,6 +311,7 @@
         continue;
       }
 
+      swapping = false;
       mode = { type: ev.type, value: ev.value };
       fillTarget(mode, t, tEnd);
       if (ev.type === 'cpt') cptSegment(ev.value, tEnd, true);

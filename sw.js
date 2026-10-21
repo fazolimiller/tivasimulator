@@ -1,6 +1,6 @@
 /* Service worker: guarda o app no aparelho para funcionar sem internet.
    Ao publicar uma nova versão, altere CACHE aqui e o ?v= dos arquivos em index.html. */
-const CACHE = 'tcisim-v12';
+const CACHE = 'tcisim-v13';
 const FILES = [
   './', 'index.html', 'css/style.css', 'js/pk.js', 'js/tci.js', 'js/app.js',
   'vendor/chart.umd.min.js', 'manifest.webmanifest',
@@ -35,4 +35,13 @@ self.addEventListener('fetch', (e) => {
       })
       .catch(() => caches.match(e.request, { ignoreSearch: true }).then((r) => r || caches.match('index.html')))
   );
+});
+
+// Toque no aviso de ajuste da bomba: volta para o app
+self.addEventListener('notificationclick', (e) => {
+  e.notification.close();
+  e.waitUntil(self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((list) => {
+    for (const c of list) if ('focus' in c) return c.focus();
+    return self.clients.openWindow('./');
+  }));
 });

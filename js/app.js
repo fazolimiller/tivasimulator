@@ -4,6 +4,7 @@
 
   const STORAGE_KEY = 'tivasimulator.v1';
   const THEME_KEY = 'tivasimulator.theme';
+  const NOTIFY_KEY = 'tivasimulator.notify';
   const $ = (sel, el) => (el || document).querySelector(sel);
 
   const nf = (x, d) => (Number.isFinite(x) ? x.toLocaleString('pt-BR', { minimumFractionDigits: d, maximumFractionDigits: d }) : '—');
@@ -34,12 +35,12 @@
   function cssVar(name) {
     return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
   }
-  function toast(msg) {
+  function toast(msg, ms) {
     const el = $('#toast');
     el.textContent = msg;
     el.hidden = false;
     clearTimeout(toast.timer);
-    toast.timer = setTimeout(() => { el.hidden = true; }, 3500);
+    toast.timer = setTimeout(() => { el.hidden = true; }, ms || 3500);
   }
 
   // ---------------------------------------------------------------------------
@@ -53,6 +54,7 @@
     infusions: [],
     time: 0,
     playing: false,
+    notify: true, // avisos (som, vibração e notificação) quando a bomba precisa ser ajustada
     speed: 1, // sempre inicia em tempo real
     zoom: 30, // minutos visíveis no gráfico
     winStart: 0, // início da janela visível (s)
@@ -435,6 +437,15 @@
       const go = e.target.closest('[data-go]');
       if (go) setTime(+go.dataset.go);
     });
+    $('.swap-btn', el).addEventListener('click', () => {
+      const t = Math.round(state.time);
+      const type = isSwapping(inf, t) ? 'resume' : 'swap';
+      inf.events = inf.events.filter((ev) => !(ev.t === t && ev.type !== 'bolus'));
+      inf.events.push({ t, type, value: 0 });
+      inf.events.sort((a, b) => a.t - b.t);
+      refreshAfterEdit(inf);
+      toast(`${PK.DRUGS[inf.drugKey].name}: ${type === 'swap' ? 'infusão parada para troca de seringa' : 'infusão reiniciada'} em ${fmtTime(t)}`);
+    });
 
     buildChart(inf);
     refreshCard(inf, true);
@@ -452,7 +463,14 @@
     val.placeholder = type === 'stop' ? 'Pausa a bomba' : (type === 'cet' || type === 'cpt') ? `ex.: ${nf(drug.defaultTarget, drug.defaultTarget % 1 ? 1 : 0)}` : '';
   }
 
-  const EVENT_LABEL = { cet: 'Alvo Ce', cpt: 'Alvo Cp', rate: 'Taxa', bolus: 'Bolus', stop: 'Parar' };
+  const EVENT_LABEL = { cet: 'Alvo Ce', cpt: 'Alvo Cp', rate: 'Taxa', bolus: 'Bolus', stop: 'Parar', swap: 'Troca de seringa', resume: 'Seringa reposta' };
+
+  // Bomba parada para troca de seringa no instante t (última ação que não é bolus foi a troca)
+  function isSwapping(inf, t) {
+    let last = null;
+    for (const ev of inf.events) if (ev.t <= t && ev.type !== 'bolus') last = ev;
+    return !!last && last.type === 'swap';
+  }
 
   function refreshCard(inf, resimulate) {
     const el = inf.el, drug = PK.DRUGS[inf.drugKey], p = state.patient;
@@ -488,7 +506,7 @@
     inf.events.forEach((ev, i) => {
       const chip = document.createElement('span');
       chip.className = 'chip';
-      const val = ev.type === 'stop' ? '' : ` ${nf(ev.value, ev.value % 1 ? 2 : 0)} ${UNIT_OF(drug, ev.type)}`;
+      const val = (ev.type === 'stop' || ev.type === 'swap' || ev.type === 'resume') ? '' : ` ${nf(ev.value, ev.value % 1 ? 2 : 0)} ${UNIT_OF(drug, ev.type)}`;
       chip.innerHTML = `<span class="chip-time" data-go="${ev.t}" title="Ir para este tempo">${fmtTime(ev.t)}</span> ${EVENT_LABEL[ev.type]}${val}<button type="button" data-del="${i}" title="Remover ação" aria-label="Remover ação">✕</button>`;
       evBox.appendChild(chip);
     });
@@ -498,6 +516,7 @@
     const r = inf.result;
     const kg = (mlh) => (mlh * inf.concentration * drug.rateFactor) / p.weight;
     const resDigits = state.settings.rateResolution < 1 ? 1 : 0;
+    const resumeTs = new Set(inf.events.filter((ev) => ev.type === 'resume').map((ev) => ev.t));
     for (const st of r.steps) {
       const tr = document.createElement('tr');
       tr.dataset.t = st.t;
@@ -508,10 +527,11 @@
           (st.mlh ? ` em ${st.duration} s` : '');
         mlh = st.mlh ? nf(st.mlh, 0) : '—';
       } else {
-        action = st.mlh === 0 ? 'Pausar' : 'Ajustar taxa';
+        action = st.note === 'swap' ? 'Parar para trocar a seringa' : st.mlh === 0 ? 'Pausar' : 'Ajustar taxa';
         mlh = nf(st.mlh, resDigits);
         perkg = nf(kg(st.mlh), 2);
       }
+      if (resumeTs.has(st.t)) action += ' (seringa reposta)';
       tr.innerHTML = `<td class="st"></td><td>${fmtTime(st.t)}</td><td>${action}</td><td class="num">${mlh}</td><td class="num">${perkg}</td><td class="num">${nf(r.vol[Math.min(st.t, r.horizon)], 1)} ml</td>`;
       tbody.appendChild(tr);
     }
@@ -556,8 +576,17 @@
       kgEl.textContent = `${nf((mlh * inf.concentration * drug.rateFactor) / state.patient.weight, 2)} ${drug.rateUnit}`;
       if (mlh === 0) mode = 'pause';
     }
+    const swapping = isSwapping(inf, t);
+    if (swapping && mode === 'pause') {
+      mode = 'swap';
+      kgEl.textContent = 'parada para troca de seringa';
+    }
     stEl.className = 'pd-state ' + mode;
-    stEl.textContent = { run: 'INFUNDINDO', pause: 'PAUSADA', bolus: 'BOLUS' }[mode];
+    stEl.textContent = { run: 'INFUNDINDO', pause: 'PAUSADA', bolus: 'BOLUS', swap: 'TROCA DE SERINGA' }[mode];
+    const swapBtn = $('.swap-btn', el);
+    swapBtn.classList.toggle('resume', swapping);
+    swapBtn.textContent = swapping ? 'Seringa reposta – Reiniciar infusão' : 'Trocar seringa';
+    swapBtn.disabled = !swapping && !inf.events.length;
 
     const nc = $('.next-change', el), card = $('.next-card', el);
     const left = next ? next.t - state.time : Infinity;
@@ -565,6 +594,8 @@
     if (next) {
       const what = next.type === 'bolus' ? `Bolus ${nf(next.ml, 1)} ml` : next.mlh === 0 ? 'Pausar' : `${nf(next.mlh, res)} ml/h`;
       nc.innerHTML = `<strong class="nx-what">${what}</strong><span class="nx-in">em <strong>${fmtLeft(left)}</strong></span><span class="nx-at">às ${fmtTime(next.t)}</span>`;
+    } else if (swapping) {
+      nc.innerHTML = '<span class="nx-none">Repor a seringa e tocar em <strong>Reiniciar infusão</strong>.</span>';
     } else nc.innerHTML = `<span class="nx-none">${r.steps.length ? 'Sem outros ajustes no período simulado.' : 'Aplique uma ação para gerar o esquema.'}</span>`;
 
     const rows = $('tbody', el).rows;
@@ -630,23 +661,128 @@
     setTime.saveTimer = setTimeout(save, 400);
   }
 
-  let lastFrame = null;
-  function tick(ts) {
-    if (!state.playing) return;
-    if (lastFrame !== null) {
-      setTime(state.time + ((ts - lastFrame) / 1000) * state.speed);
+  // O relógio avança pelo tempo real decorrido; com a aba em segundo plano
+  // (sem requestAnimationFrame) um temporizador continua avançando e avisando.
+  let lastWall = null;
+  function advance() {
+    const now = performance.now();
+    if (lastWall !== null) {
+      const prev = state.time;
+      setTime(prev + ((now - lastWall) / 1000) * state.speed);
+      checkAlerts(prev, state.time);
       if (state.time >= horizon()) setPlaying(false);
     }
-    lastFrame = ts;
+    lastWall = now;
+  }
+  function tick() {
+    if (!state.playing) return;
+    advance();
     requestAnimationFrame(tick);
   }
+  setInterval(() => { if (state.playing && document.hidden) advance(); }, 1000);
   function setPlaying(p) {
     state.playing = p;
     btnPlay.textContent = p ? '❚❚' : '▶';
     btnPlay.setAttribute('aria-label', p ? 'Pausar' : 'Reproduzir');
-    lastFrame = null;
-    if (p) requestAnimationFrame(tick);
+    lastWall = null;
+    if (p) { unlockAudio(); requestAnimationFrame(tick); }
   }
+
+  // ---------------------------------------------------------------------------
+  // Avisos de ajuste da bomba (som, vibração e notificação do sistema)
+  // ---------------------------------------------------------------------------
+  const rateDigits = () => (state.settings.rateResolution < 1 ? 1 : 0);
+  function describeStep(st) {
+    if (st.type === 'bolus') return `Bolus ${nf(st.ml, 1)} ml`;
+    if (st.note === 'swap') return 'Parar para trocar a seringa';
+    if (st.mlh === 0) return 'Pausar a bomba';
+    return `Mudar para ${nf(st.mlh, rateDigits())} ml/h`;
+  }
+
+  // Passos da bomba que passaram no intervalo (prev, now] enquanto o tempo corre
+  function checkAlerts(prev, now) {
+    if (!state.notify || now <= prev) return;
+    for (const inf of state.infusions) {
+      const steps = inf.result ? inf.result.steps : [];
+      for (let i = 0; i < steps.length; i++) {
+        const st = steps[i];
+        if (st.t <= prev || st.t > now) continue;
+        const before = steps[i - 1];
+        // a pausa logo após um bolus já foi avisada junto com o bolus
+        if (before && before.type === 'bolus' && st.type === 'rate' && st.t <= before.t + Math.max(1, before.duration)) continue;
+        let msg = describeStep(st);
+        const after = steps[i + 1];
+        if (st.type === 'bolus' && after && after.type === 'rate' && after.t <= st.t + Math.max(1, st.duration)) {
+          msg += after.mlh === 0 ? ', depois pausar' : `, depois ${nf(after.mlh, rateDigits())} ml/h`;
+        }
+        alertPump(inf, msg);
+      }
+    }
+  }
+
+  let audioCtx = null;
+  function unlockAudio() {
+    try {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+    } catch (e) { audioCtx = null; }
+  }
+  function beep() {
+    if (!audioCtx) return;
+    const t0 = audioCtx.currentTime;
+    [0, 0.25].forEach((dt) => {
+      const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+      o.frequency.value = 880;
+      g.gain.setValueAtTime(0.0001, t0 + dt);
+      g.gain.exponentialRampToValueAtTime(0.25, t0 + dt + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + dt + 0.18);
+      o.connect(g).connect(audioCtx.destination);
+      o.start(t0 + dt);
+      o.stop(t0 + dt + 0.2);
+    });
+  }
+
+  function alertPump(inf, msg) {
+    const drug = PK.DRUGS[inf.drugKey];
+    toast(`${drug.name}: ${msg}`, 8000);
+    beep();
+    if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+    const pd = $('.pump-display', inf.el);
+    pd.classList.remove('alerting');
+    void pd.offsetWidth;
+    pd.classList.add('alerting');
+    // notificação do sistema quando o usuário não está olhando para o app
+    if (!('Notification' in window) || Notification.permission !== 'granted' || document.hasFocus()) return;
+    const title = `${drug.name}: ajustar a bomba`;
+    const opts = { body: `${msg} (${fmtTime(state.time)})`, tag: `tci-${inf.id}`, renotify: true, icon: 'icons/icon-192.png', vibrate: [200, 100, 200] };
+    const fallback = () => { try { new Notification(title, opts); } catch (e) { /* sem suporte */ } };
+    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+      navigator.serviceWorker.ready.then((reg) => reg.showNotification(title, opts)).catch(fallback);
+    } else fallback();
+  }
+
+  const btnNotify = $('#btnNotify');
+  function applyNotify(on) {
+    state.notify = on;
+    btnNotify.classList.toggle('off', !on);
+    btnNotify.setAttribute('aria-pressed', on);
+    btnNotify.title = on ? 'Avisos de ajuste da bomba: ligados' : 'Avisos de ajuste da bomba: desligados';
+  }
+  try { applyNotify(localStorage.getItem(NOTIFY_KEY) !== 'off'); } catch (e) { applyNotify(true); }
+  btnNotify.addEventListener('click', () => {
+    const on = !state.notify;
+    applyNotify(on);
+    try { localStorage.setItem(NOTIFY_KEY, on ? 'on' : 'off'); } catch (e) { /* ignore */ }
+    if (!on) { toast('Avisos desligados.'); return; }
+    unlockAudio();
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission().then((p) => {
+        toast(p === 'granted' ? 'Avisos ligados, com notificação do sistema.' : 'Avisos ligados (som e vibração). Notificações do sistema não autorizadas.');
+      });
+    } else if ('Notification' in window && Notification.permission === 'denied') {
+      toast('Avisos ligados (som e vibração). As notificações do sistema estão bloqueadas nas configurações do navegador.', 6000);
+    } else toast('Avisos ligados.');
+  });
 
   btnPlay.addEventListener('click', () => setPlaying(!state.playing));
   document.querySelectorAll('[data-jump]').forEach((b) => b.addEventListener('click', () => {
