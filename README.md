@@ -1,4 +1,6 @@
-# TIVA Simulator – TCI manual para bombas em ml/h
+# TCI Sim – Simulador de infusão TCI
+
+*powered by anestec* · TCI manual para bombas em ml/h
 
 Aplicativo web (HTML + JavaScript puro, funciona offline) que simula a **infusão alvo-controlada (TCI)**
 e converte o alvo desejado (Cp ou Ce) em um **esquema executável em bombas comuns**: bolus em ml e
@@ -103,3 +105,5 @@ node tests/smoke.js          # imprime esquemas de exemplo
 - `js/tci.js` – geração dos esquemas (bolus/ml/h) e simulação
 - `js/app.js` – interface, gráficos (Chart.js) e linha do tempo
 - `vendor/chart.umd.min.js` – Chart.js 4.4.4 (MIT), incluído para uso offline
+- `brand/logo-mark.svg`, `icons/` – marca TCI Sim / anestec e ícones do aplicativo
+- `fonts/` – Montserrat (títulos) e Inter (textos), SIL Open Font License, incluídas para uso offline

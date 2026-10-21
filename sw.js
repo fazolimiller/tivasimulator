@@ -1,10 +1,13 @@
 /* Service worker: guarda o app no aparelho para funcionar sem internet.
    Ao publicar uma nova versão, altere CACHE para forçar a atualização. */
-const CACHE = 'tivasim-v3';
+const CACHE = 'tivasim-v4';
 const FILES = [
   './', 'index.html', 'css/style.css', 'js/pk.js', 'js/tci.js', 'js/app.js',
   'vendor/chart.umd.min.js', 'manifest.webmanifest',
-  'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png', 'icons/favicon-32.png',
+  'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png', 'icons/favicon-32.png', 'icons/icon.svg',
+  'fonts/inter-latin-400-normal.woff2', 'fonts/inter-latin-500-normal.woff2', 'fonts/inter-latin-600-normal.woff2',
+  'fonts/inter-latin-700-normal.woff2', 'fonts/montserrat-latin-600-normal.woff2', 'fonts/montserrat-latin-700-normal.woff2',
+  'fonts/montserrat-latin-800-normal.woff2',
 ];
 
 self.addEventListener('install', (e) => {

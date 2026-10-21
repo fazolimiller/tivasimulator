@@ -3,33 +3,40 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>TIVA Simulator</title>
+  <title>TCI Sim</title>
   <meta name="description" content="Simulador de infusão alvo-controlada (TCI) para bombas de infusão que só aceitam ml/h.">
-  <meta name="theme-color" content="#0f2a4a">
+  <meta name="theme-color" content="#0B2D4A">
   <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
   <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-title" content="TIVA Sim">
+  <meta name="apple-mobile-web-app-title" content="TCI Sim">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
   <header class="topbar">
     <div class="brand">
-      <svg class="logo" viewBox="0 0 32 32" aria-hidden="true">
-        <rect x="3" y="6" width="26" height="20" rx="5" fill="none" stroke="currentColor" stroke-width="2.2"/>
-        <path d="M7 19 L11 19 L13 13 L16 23 L19 11 L21 19 L25 19" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <svg class="logo" viewBox="0 0 100 110" fill="none" stroke-linecap="round" aria-hidden="true">
+        <path d="M28 14 A40 40 0 0 1 90 47 V86" stroke="#00D1E6" stroke-width="7"/>
+        <path d="M36 25 A28 28 0 0 1 78 49 V98" stroke="#0066FF" stroke-width="6"/>
+        <path d="M19 44 A42 42 0 0 0 64 104" stroke="#00D1E6" stroke-width="7"/>
+        <path d="M25 54 A31 31 0 0 0 58 92" stroke="#0066FF" stroke-width="6"/>
+        <path d="M32 61 A21 21 0 0 0 54 81" stroke="#0066FF" stroke-width="5"/>
+        <rect x="38" y="30" width="24" height="34" rx="6" stroke="#FFFFFF" stroke-width="4.5"/>
+        <path d="M43 40 H49 M43 46 H47 M43 52 H49" stroke="#00D1E6" stroke-width="2.6"/>
+        <path d="M50 64 V70 M45 70 H55 M47 70 V75 H53 V70 M50 75 V82" stroke="#FFFFFF" stroke-width="4" stroke-linejoin="round"/>
       </svg>
       <div>
-        <h1>TIVA Simulator</h1>
-        <p class="subtitle">TCI manual para bombas em ml/h</p>
+        <h1 class="brand-name">TCI <span>Sim</span></h1>
+        <p class="subtitle">Simulador de infusão TCI</p>
       </div>
     </div>
     <div class="top-actions">
       <button id="btnShare" class="top-btn" type="button" title="Copiar link com este cenário">Compartilhar</button>
-      <button id="btnTheme" class="top-btn icon" type="button" title="Alternar tema claro/escuro" aria-label="Alternar tema">◐</button>
+      <button id="btnTheme" class="top-btn icon" type="button" title="Alternar tema claro/escuro" aria-label="Alternar tema"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></button>
       <button id="btnAbout" class="top-btn" type="button">Fórmulas</button>
     </div>
   </header>
@@ -86,6 +93,23 @@
       <button type="button" id="btnReset" class="ghost">Limpar tudo</button>
     </div>
   </main>
+
+  <footer class="site-footer">
+    <span class="powered">powered by
+      <span class="anestec">
+        <svg viewBox="0 0 100 110" fill="none" stroke-linecap="round" aria-hidden="true">
+          <path d="M28 14 A40 40 0 0 1 90 47 V86" stroke="#00D1E6" stroke-width="7"/>
+          <path d="M36 25 A28 28 0 0 1 78 49 V98" stroke="#0066FF" stroke-width="6"/>
+          <path d="M19 44 A42 42 0 0 0 64 104" stroke="#00D1E6" stroke-width="7"/>
+          <path d="M25 54 A31 31 0 0 0 58 92" stroke="#0066FF" stroke-width="6"/>
+          <path d="M32 61 A21 21 0 0 0 54 81" stroke="#0066FF" stroke-width="5"/>
+          <rect x="38" y="30" width="24" height="34" rx="6" stroke="#FFFFFF" stroke-width="4.5"/>
+          <path d="M43 40 H49 M43 46 H47 M43 52 H49" stroke="#00D1E6" stroke-width="2.6"/>
+          <path d="M50 64 V70 M45 70 H55 M47 70 V75 H53 V70 M50 75 V82" stroke="#FFFFFF" stroke-width="4" stroke-linejoin="round"/>
+        </svg>anestec</span>
+    </span>
+    <span class="footer-tag">Tecnologia a serviço da anestesia</span>
+  </footer>
 
   <div id="toast" class="toast" role="status" hidden></div>
 

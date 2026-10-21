@@ -237,7 +237,7 @@
         plugins: {
           legend: { display: false },
           tooltip: {
-            backgroundColor: 'rgba(15,42,74,.92)',
+            backgroundColor: 'rgba(11,45,74,.94)',
             padding: 10,
             callbacks: {
               title: (items) => (items.length ? fmtTime(items[0].parsed.x * 60) : ''),

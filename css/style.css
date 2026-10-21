@@ -1,31 +1,47 @@
+/* Identidade visual TCI Sim / anestec
+   Azul marinho #0B2D4A · Azul primário #0066FF · Ciano #00D1E6 · Cinza #8FA3B8 · Fundo #F5F8FC
+   Tipografia: Montserrat (títulos e destaques) e Inter (textos) */
+@font-face { font-family: "Inter"; font-weight: 400; font-display: swap; src: url("../fonts/inter-latin-400-normal.woff2") format("woff2"); }
+@font-face { font-family: "Inter"; font-weight: 500; font-display: swap; src: url("../fonts/inter-latin-500-normal.woff2") format("woff2"); }
+@font-face { font-family: "Inter"; font-weight: 600; font-display: swap; src: url("../fonts/inter-latin-600-normal.woff2") format("woff2"); }
+@font-face { font-family: "Inter"; font-weight: 700; font-display: swap; src: url("../fonts/inter-latin-700-normal.woff2") format("woff2"); }
+@font-face { font-family: "Montserrat"; font-weight: 600; font-display: swap; src: url("../fonts/montserrat-latin-600-normal.woff2") format("woff2"); }
+@font-face { font-family: "Montserrat"; font-weight: 700; font-display: swap; src: url("../fonts/montserrat-latin-700-normal.woff2") format("woff2"); }
+@font-face { font-family: "Montserrat"; font-weight: 800; font-display: swap; src: url("../fonts/montserrat-latin-800-normal.woff2") format("woff2"); }
+
 :root {
-  --bg: #eef2f7;
+  --navy: #0B2D4A;
+  --blue: #0066FF;
+  --cyan: #00D1E6;
+  --gray: #8FA3B8;
+  --bg: #F5F8FC;
   --surface: #ffffff;
-  --surface-2: #f4f7fb;
-  --text: #13202f;
-  --muted: #5d6b7e;
-  --border: #dbe2ec;
-  --primary: #0e7c86;
-  --primary-strong: #0a6870;
-  --primary-soft: #dff3f4;
+  --surface-2: #EEF3F9;
+  --text: #0B2D4A;
+  --muted: #5A6F86;
+  --border: #D9E3EE;
+  --primary: #0066FF;
+  --primary-strong: #0052CC;
+  --primary-soft: #E5F0FF;
   --primary-text: #ffffff;
-  --header: #0f2a4a;
-  --header-text: #eaf2fb;
+  --header: #0B2D4A;
+  --header-text: #F5F8FC;
   --warn-bg: #fff4d6;
   --warn-text: #7a4b00;
-  --row-now: #dff3f4;
-  --lcd-bg: #0d1b2a;
-  --lcd-text: #7ff0c9;
-  --lcd-muted: #8aa4bf;
-  --shadow: 0 1px 2px rgba(15, 42, 74, .06), 0 4px 16px rgba(15, 42, 74, .06);
+  --row-now: #E5F0FF;
+  --lcd-bg: #0B2D4A;
+  --lcd-text: #00D1E6;
+  --lcd-muted: #8FA3B8;
+  --shadow: 0 1px 2px rgba(11, 45, 74, .06), 0 6px 20px rgba(11, 45, 74, .07);
   --radius: 14px;
+  --font-title: "Montserrat", "Inter", system-ui, sans-serif;
   color-scheme: light;
 }
 :root[data-theme="dark"] {
-  --bg: #0b1119; --surface: #131c27; --surface-2: #1a2532; --text: #e5ecf4; --muted: #93a3b6;
-  --border: #263343; --primary: #2bb3bd; --primary-strong: #48c6cf; --primary-soft: #133a40; --primary-text: #04161a;
-  --header: #0a1624; --header-text: #e5ecf4; --warn-bg: #3a2e10; --warn-text: #f5d58a; --row-now: #133a40;
-  --lcd-bg: #060d15; --shadow: 0 1px 2px rgba(0,0,0,.4); color-scheme: dark;
+  --bg: #071a2c; --surface: #0e2640; --surface-2: #13304f; --text: #F5F8FC; --muted: #8FA3B8;
+  --border: #1f3f63; --primary: #2b85ff; --primary-strong: #5aa0ff; --primary-soft: #11325a; --primary-text: #ffffff;
+  --header: #05121f; --header-text: #F5F8FC; --warn-bg: #3a2e10; --warn-text: #f5d58a; --row-now: #11325a;
+  --lcd-bg: #05121f; --shadow: 0 1px 2px rgba(0,0,0,.4); color-scheme: dark;
 }
 
 * { box-sizing: border-box; }
@@ -33,10 +49,10 @@ html, body { margin: 0; }
 body {
   background: var(--bg);
   color: var(--text);
-  font: 15px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  font: 15px/1.45 "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
-h1, h2, h3 { margin: 0; line-height: 1.2; }
+h1, h2, h3 { margin: 0; line-height: 1.2; font-family: var(--font-title); }
 h2 { font-size: .74rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin-bottom: 10px; font-weight: 700; }
 .muted { color: var(--muted); }
 .small { font-size: .82rem; }
@@ -81,15 +97,16 @@ input[type="range"] { padding: 0; border: none; background: transparent; accent-
   padding-right: max(20px, env(safe-area-inset-right));
 }
 .brand { display: flex; align-items: center; gap: 12px; }
-.logo { width: 34px; height: 34px; color: #5fe0c4; flex: none; }
-.brand h1 { font-size: 1.15rem; font-weight: 700; letter-spacing: .01em; }
-.subtitle { margin: 0; opacity: .7; font-size: .82rem; }
+.logo { width: 44px; height: 48px; flex: none; }
+.brand-name { font-family: var(--font-title); font-size: 1.45rem; font-weight: 800; letter-spacing: -.01em; line-height: 1; }
+.brand-name span { color: var(--cyan); }
+.subtitle { margin: 4px 0 0; font-size: .66rem; letter-spacing: .2em; text-transform: uppercase; color: #c4d3e3; font-weight: 500; }
 .top-actions { display: flex; gap: 8px; }
 .top-btn {
   background: rgba(255,255,255,.08); border-color: rgba(255,255,255,.18); color: var(--header-text);
 }
 .top-btn:hover { background: rgba(255,255,255,.16); border-color: rgba(255,255,255,.35); }
-.top-btn.icon { width: 40px; padding: 0; font-size: 1.1rem; }
+.top-btn.icon { width: 40px; padding: 0; display: inline-flex; align-items: center; justify-content: center; }
 
 main { max-width: 1440px; margin: 0 auto; padding: 18px max(20px, env(safe-area-inset-right)) max(40px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left)); display: flex; flex-direction: column; gap: 16px; }
 
@@ -123,7 +140,7 @@ label.check { display: flex; align-items: center; gap: 8px; margin-top: 12px; fo
 .timebar-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
 .clock { display: flex; flex-direction: column; }
 .clock-label { font-size: .7rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 700; }
-.clock output { font-size: 1.9rem; font-variant-numeric: tabular-nums; font-weight: 700; letter-spacing: .02em; line-height: 1.1; }
+.clock output { font-family: var(--font-title); font-size: 1.9rem; font-variant-numeric: tabular-nums; font-weight: 700; letter-spacing: .02em; line-height: 1.1; }
 .transport { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
 .transport button { min-width: 48px; background: var(--surface-2); }
 .transport select { width: auto; background: var(--surface-2); }
@@ -181,7 +198,7 @@ label.check { display: flex; align-items: center; gap: 8px; margin-top: 12px; fo
 .pd-state.bolus { color: #ff9b9b; background: rgba(255,155,155,.14); }
 .pd-rate { margin: 4px 0 0; }
 .rate-now {
-  font-size: 2.3rem; font-weight: 600; line-height: 1.1;
+  font-family: var(--font-title); font-size: 2.3rem; font-weight: 700; line-height: 1.1;
   font-variant-numeric: tabular-nums; letter-spacing: -.01em;
 }
 .pd-sub { color: var(--lcd-muted); font-size: .85rem; min-height: 1.2em; }
@@ -252,6 +269,16 @@ tbody tr.bolus td:nth-child(3) { font-weight: 700; }
   position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); background: var(--header); color: var(--header-text);
   padding: 10px 16px; border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,.25); z-index: 20; font-size: .9rem; max-width: calc(100% - 32px);
 }
+
+/* Rodapé da marca */
+.site-footer {
+  background: var(--header); color: var(--header-text); padding: 22px 20px max(22px, env(safe-area-inset-bottom));
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 6px 22px; text-align: center;
+}
+.powered { display: inline-flex; align-items: center; gap: 10px; font-size: .85rem; color: #c4d3e3; }
+.anestec { display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-title); font-weight: 700; font-size: 1.35rem; color: #2b85ff; letter-spacing: -.01em; }
+.anestec svg { width: 26px; height: 29px; }
+.footer-tag { font-size: .8rem; color: var(--gray); }
 
 dialog { border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); color: var(--text); max-width: 720px; width: calc(100% - 32px); }
 dialog::backdrop { background: rgba(5, 15, 30, .55); }
