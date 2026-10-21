@@ -475,15 +475,14 @@
     const evBox = $('.events', el);
     evBox.innerHTML = '';
     if (!inf.events.length) {
-      evBox.innerHTML = '<li class="empty">Nenhuma ação ainda. Escolha o tipo, digite o valor e clique em Aplicar para iniciar no tempo atual.</li>';
+      evBox.innerHTML = '<span class="empty">Nenhuma ação ainda. Escolha o tipo, digite o valor e clique em Aplicar para iniciar no tempo atual.</span>';
     }
     inf.events.forEach((ev, i) => {
-      const item = document.createElement('li');
-      item.className = `tl-item tl-${ev.type}`;
-      item.dataset.t = ev.t;
+      const chip = document.createElement('span');
+      chip.className = 'chip';
       const val = ev.type === 'stop' ? '' : ` ${nf(ev.value, ev.value % 1 ? 2 : 0)} ${UNIT_OF(drug, ev.type)}`;
-      item.innerHTML = `<span class="tl-time" data-go="${ev.t}" title="Ir para este tempo">${fmtTime(ev.t)}</span><span class="tl-dot"></span><span class="tl-act">${EVENT_LABEL[ev.type]}${val}<button type="button" data-del="${i}" title="Remover ação" aria-label="Remover ação">✕</button></span>`;
-      evBox.appendChild(item);
+      chip.innerHTML = `<span class="chip-time" data-go="${ev.t}" title="Ir para este tempo">${fmtTime(ev.t)}</span> ${EVENT_LABEL[ev.type]}${val}<button type="button" data-del="${i}" title="Remover ação" aria-label="Remover ação">✕</button>`;
+      evBox.appendChild(chip);
     });
 
     const tbody = $('tbody', el);
@@ -564,13 +563,6 @@
       rows[i].classList.toggle('past', i < idx);
       if (rows[i].cells.length > 1) rows[i].cells[0].textContent = i === idx ? '▶' : i < idx ? '✓' : '';
     }
-    const items = el.querySelectorAll('.tl-item');
-    let tlNow = -1;
-    items.forEach((it, i) => { if (+it.dataset.t <= state.time) tlNow = i; });
-    items.forEach((it, i) => {
-      it.classList.toggle('now', i === tlNow);
-      it.classList.toggle('past', i < tlNow);
-    });
     inf.chart.draw();
   }
 

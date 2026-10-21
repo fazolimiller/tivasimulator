@@ -14,7 +14,7 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="TCI Sim">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <link rel="stylesheet" href="css/style.css?v=11">
+  <link rel="stylesheet" href="css/style.css?v=10">
 </head>
 <body>
   <header class="topbar">
@@ -137,6 +137,8 @@
             <button type="submit" class="primary">Aplicar</button>
           </div>
         </form>
+
+        <div class="events"></div>
       </div>
       <div class="inf-body">
         <div class="inf-chart">
@@ -147,10 +149,6 @@
               <span class="zoom-label">30 min</span>
               <button type="button" data-zoom="-1" title="Mostrar menos tempo (aproximar)" aria-label="Aproximar">+</button>
             </div>
-          </div>
-          <div class="timeline" aria-label="Linha do tempo da infusão">
-            <span class="tl-title">Linha do tempo</span>
-            <ol class="events"></ol>
           </div>
           <div class="legend">
             <span><i class="lg-cp"></i>Cp plasma</span>
@@ -226,8 +224,8 @@ Cp = ΣCp<sub>i</sub> (i=1..3)    Ce = ΣCe<sub>i</sub> (i=1..4, λ<sub>4</sub>=
   </dialog>
 
   <script src="vendor/chart.umd.min.js"></script>
-  <script src="js/pk.js?v=11"></script>
-  <script src="js/tci.js?v=11"></script>
-  <script src="js/app.js?v=11"></script>
+  <script src="js/pk.js?v=10"></script>
+  <script src="js/tci.js?v=10"></script>
+  <script src="js/app.js?v=10"></script>
 </body>
 </html>
