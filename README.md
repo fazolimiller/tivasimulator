@@ -41,7 +41,7 @@ Ao publicar uma nova versão, altere `CACHE` em `sw.js` (ex.: `tivasim-v2`) para
 
 | Fármaco | Modelos |
 |---|---|
-| Propofol | Marsh, Schnider, Eleveld, Paedfusor |
+| Propofol | Eleveld (padrão), Marsh, Schnider, Paedfusor |
 | Remifentanil | Minto, Eleveld |
 | Fentanil | Shafer |
 | Alfentanil | Maitre |

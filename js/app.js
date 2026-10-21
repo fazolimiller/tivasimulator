@@ -660,8 +660,8 @@
     else document.documentElement.removeAttribute('data-theme');
   }
   $('#btnTheme').addEventListener('click', () => {
-    const dark = document.documentElement.getAttribute('data-theme') === 'dark' ||
-      (!document.documentElement.getAttribute('data-theme') && matchMedia('(prefers-color-scheme: dark)').matches);
+    // padrão: tema claro; escuro só quando escolhido no botão
+    const dark = document.documentElement.getAttribute('data-theme') === 'dark';
     const next = dark ? 'light' : 'dark';
     applyTheme(next);
     try { localStorage.setItem(THEME_KEY, next); } catch (e) { /* ignore */ }

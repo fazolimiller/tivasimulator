@@ -55,7 +55,7 @@
     propofol: {
       name: 'Propofol', doseUnit: 'mg', concUnit: 'mcg/ml', concFactor: 1,
       rateUnit: 'mg/kg/h', rateFactor: 1, defaultConc: 10, defaultTarget: 3, color: '#2563eb', threshold: 0.08, avgFactor: 0.667,
-      models: ['Marsh', 'Schnider', 'Eleveld', 'Paedfusor'],
+      models: ['Eleveld', 'Marsh', 'Schnider', 'Paedfusor'],
     },
     remifentanil: {
       name: 'Remifentanil', doseUnit: 'mcg', concUnit: 'ng/ml', concFactor: 1,
