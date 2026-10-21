@@ -751,7 +751,7 @@
   // ---------------------------------------------------------------------------
   const fromLink = loadFromHash();
   if (!fromLink && (!load() || !state.infusions.length)) {
-    state.infusions = [newInfusion('propofol'), newInfusion('remifentanil')];
+    state.infusions = [newInfusion('propofol')];
   }
   syncHorizon();
   writeForm();
